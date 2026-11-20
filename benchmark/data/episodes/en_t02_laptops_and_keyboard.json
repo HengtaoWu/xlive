@@ -1,0 +1,373 @@
+{
+ "episode_id": "en_t02_laptops_and_keyboard",
+ "template_id": "T02_parallel_independent_tasks",
+ "split": "all",
+ "lang": "en",
+ "domain": "shopping",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "Compare two laptops on price/weight/battery, and separately find a quiet keyboard for library use.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-09-07T19:10:00+01:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "ZenBook 14": [
+     "Zenbook 14",
+     "ASUS ZenBook 14",
+     "Asus Zenbook"
+    ],
+    "ThinkPad X1 Carbon": [
+     "X1 Carbon",
+     "Lenovo X1 Carbon",
+     "ThinkPad X1",
+     "X1"
+    ],
+    "price": [
+     "cost"
+    ],
+    "weight_kg": [
+     "weight"
+    ],
+    "battery_h": [
+     "battery",
+     "battery life"
+    ]
+   },
+   "products": [
+    {
+     "name": "ZenBook 14",
+     "price": 1099,
+     "weight_kg": 1.28,
+     "battery_h": 15,
+     "cpu": "Core Ultra 7 255H",
+     "ram_gb": 16,
+     "storage_gb": 1024,
+     "display": "14\" 2.8K OLED"
+    },
+    {
+     "name": "ThinkPad X1 Carbon",
+     "price": 1649,
+     "weight_kg": 1.09,
+     "battery_h": 13,
+     "cpu": "Core Ultra 7 268V",
+     "ram_gb": 32,
+     "storage_gb": 512,
+     "display": "14\" 2.8K OLED"
+    }
+   ],
+   "catalog": [
+    {
+     "name": "Logitech MX Keys Mini",
+     "category": "keyboard",
+     "price": 99,
+     "rating": 4.7,
+     "features": [
+      "quiet",
+      "wireless",
+      "compact",
+      "backlit"
+     ]
+    },
+    {
+     "name": "Logitech K380s",
+     "category": "keyboard",
+     "price": 39,
+     "rating": 4.6,
+     "features": [
+      "quiet",
+      "wireless",
+      "compact"
+     ]
+    },
+    {
+     "name": "Microsoft Bluetooth Keyboard",
+     "category": "keyboard",
+     "price": 49,
+     "rating": 4.3,
+     "features": [
+      "quiet",
+      "wireless"
+     ]
+    },
+    {
+     "name": "Keychron K2",
+     "category": "keyboard",
+     "price": 89,
+     "rating": 4.8,
+     "features": [
+      "wireless",
+      "compact",
+      "backlit",
+      "mechanical"
+     ]
+    },
+    {
+     "name": "Razer BlackWidow V4",
+     "category": "keyboard",
+     "price": 169,
+     "rating": 4.5,
+     "features": [
+      "backlit",
+      "mechanical"
+     ]
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "compare_products": {
+    "duration_s": 55,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "search_products": {
+    "duration_s": 12,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 8
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you compare the ZenBook 14 and the ThinkPad X1 Carbon for me? Mainly price, weight, and battery life.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Oh, and separately, find me a quiet keyboard I can take to the library.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1,
+    "max_wait": 8
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Out of curiosity, is sixteen gigs of RAM enough if I do some light photo editing?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.5,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay, I think I'll go with the lighter one.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_laptops",
+    "event": "task_completed",
+    "delay": 13,
+    "max_wait": 70
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_laptops",
+   "summary": "Compare ZenBook 14 ($1,099, 1.28 kg, 15 h) vs ThinkPad X1 Carbon ($1,649, 1.09 kg, 13 h). Lighter = X1 Carbon. Returns after the keyboard search.",
+   "match": {
+    "tool": "compare_products"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "products": [
+       "ZenBook 14",
+       "ThinkPad X1 Carbon"
+      ],
+      "aspects": {
+       "$optional": {
+        "$contains": [
+         "price",
+         "weight_kg",
+         "battery_h"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "products": [
+      "ZenBook 14",
+      "ThinkPad X1 Carbon"
+     ],
+     "aspects": {
+      "$optional": {
+       "$contains": [
+        "price",
+        "weight_kg",
+        "battery_h"
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "1099"
+     ],
+     [
+      "1649"
+     ],
+     [
+      "1.09"
+     ],
+     [
+      "1.28"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  },
+  {
+   "goal_id": "g_keyboard",
+   "summary": "Keyboard search with 'quiet' (non-mechanical). Valid picks: Logitech MX Keys Mini, Logitech K380s, Microsoft Bluetooth Keyboard. Returns first.",
+   "match": {
+    "tool": "search_products"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "category": "keyboard",
+      "features": {
+       "$all": [
+        {
+         "$contains": [
+          "quiet"
+         ]
+        },
+        {
+         "$excludes": [
+          "mechanical",
+          "backlit"
+         ]
+        }
+       ]
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "category": "keyboard",
+     "features": {
+      "$all": [
+       {
+        "$contains": [
+         "quiet"
+        ]
+       },
+       {
+        "$excludes": [
+         "mechanical",
+         "backlit"
+        ]
+       }
+      ]
+     },
+     "max_price": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "MX Keys Mini"
+     ],
+     [
+      "K380s"
+     ],
+     [
+      "Microsoft Bluetooth"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Say 16 GB is generally enough for light photo editing; more helps for large catalogues/heavy layering.",
+   "must_not": "Only report task status; state laptop specs before the comparison has returned.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "enough",
+      "fine",
+      "plenty",
+      "sufficient"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Identify the lighter laptop correctly as the ThinkPad X1 Carbon (1.09 kg vs 1.28 kg), possibly noting it costs $550 more.",
+   "must_not": "Name the ZenBook as lighter; confuse the keyboard results with the laptops.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "X1 Carbon",
+      "ThinkPad"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "zenbook is lighter",
+     "the lighter one is the zenbook"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Merges both requests into one task, or amends the laptop task to add the keyboard.",
+  "Attributes the keyboard result to the laptop comparison (or vice versa) when the keyboard returns first.",
+  "Forgets the laptop comparison after the keyboard result is delivered.",
+  "Recommends a mechanical keyboard as 'quiet'."
+ ]
+}

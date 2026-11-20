@@ -1,0 +1,355 @@
+{
+ "episode_id": "en_t07c_nashville_dinner_and_show",
+ "template_id": "T07_out_of_order_delivery_topic_shift",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S7_out_of_order_results",
+  "S7_result_arrives_while_user_speaks",
+  "S1_related_qa_during_wait",
+  "no_capability_no_fabrication"
+ ],
+ "user_goal": "Nashville dinner for four on Friday plus a live-music show; user asks to reserve (no reservation tool).",
+ "environment": {
+  "agent_context": {
+   "now": "2026-08-24T11:00:00-05:00",
+   "weekday": "Monday",
+   "note": "Search only; no reservation tool.",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Downtown": [
+     "downtown nashville",
+     "downtown",
+     "Broadway"
+    ],
+    "Nashville": [
+     "Music City"
+    ]
+   },
+   "restaurants": [
+    {
+     "name": "Hattie's Hot Chicken",
+     "area": "Downtown",
+     "cuisine": "Southern",
+     "price_pp": 25,
+     "rating": 4.6,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-08-28": [
+       "18:00",
+       "19:00"
+      ]
+     }
+    },
+    {
+     "name": "The Gulch Grill",
+     "area": "Downtown",
+     "cuisine": "steakhouse",
+     "price_pp": 70,
+     "rating": 4.7,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-08-28": [
+       "19:00",
+       "20:30"
+      ]
+     }
+    },
+    {
+     "name": "Biscuit Barn",
+     "area": "Downtown",
+     "cuisine": "Southern",
+     "price_pp": 20,
+     "rating": 4.4,
+     "max_party": 2,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-08-28": [
+       "18:30"
+      ]
+     }
+    },
+    {
+     "name": "East Side Tacos",
+     "area": "East Nashville",
+     "cuisine": "Mexican",
+     "price_pp": 18,
+     "rating": 4.8,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-08-28": [
+       "19:00"
+      ]
+     }
+    }
+   ],
+   "events": [
+    {
+     "name": "Bluebird Songwriters Night",
+     "city": "Nashville",
+     "date": "2026-08-28",
+     "category": "live music",
+     "venue": "Bluebird Cafe",
+     "time": "21:00",
+     "price": 25
+    },
+    {
+     "name": "Ryman: Bluegrass Revival",
+     "city": "Nashville",
+     "date": "2026-08-28",
+     "category": "live music",
+     "venue": "Ryman Auditorium",
+     "time": "20:00",
+     "price": 55
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_restaurants": {
+    "duration_s": 48,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 15
+    },
+    "release_not_before": {
+     "turn": "u4",
+     "offset": 2,
+     "max_hold_s": 40
+    }
+   },
+   "search_events": {
+    "duration_s": 12,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 8
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find us a dinner spot downtown in Nashville for four on Friday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And see what live music is on that night.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is Broadway worth it, or is it just bachelorette parties now?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "What should I wear? Is it boots-and-hats all over, or is that just for tourists?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Perfect, reserve the seven o'clock table.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_dinner",
+   "summary": "Downtown, 4, Fri 8/28: Gulch Grill 4.7 (19:00, 20:30), Hattie's 4.6 (18:00, 19:00). Both have 7:00 → 'the 7 o'clock' is ambiguous. Arrives mid-u4.",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Downtown",
+      "party_size": 4,
+      "date": "2026-08-28",
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "Downtown",
+     "party_size": 4,
+     "date": "2026-08-28",
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Gulch Grill"
+     ],
+     [
+      "Hattie"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_show",
+   "summary": "Shows: Ryman 8pm $55, Bluebird 9pm $25.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Nashville",
+      "date": "2026-08-28",
+      "category": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Nashville",
+     "date": "2026-08-28",
+     "category": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Ryman"
+     ],
+     [
+      "Bluebird"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Honest take on Broadway.",
+   "must_not": "Only talk about searches.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "touristy",
+      "bachelorette",
+      "bands",
+      "loud"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Dress advice; dinner results arrive mid-question: answer first.",
+   "must_not": "Skip the question.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "casual",
+      "jeans",
+      "tourists",
+      "locals"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "Resolve ambiguity (two 7:00 tables); no reservation capability.",
+   "must_not": "Claim a reservation was made.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Gulch",
+      "Hattie",
+      "which"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "i've reserved",
+     "reservation is confirmed",
+     "you're booked",
+     "table is booked"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Claims to have reserved.",
+  "Recommends East Side Tacos as downtown.",
+  "Cuts across the dress question with results."
+ ]
+}

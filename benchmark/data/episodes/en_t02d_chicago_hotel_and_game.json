@@ -1,0 +1,324 @@
+{
+ "episode_id": "en_t02d_chicago_hotel_and_game",
+ "template_id": "T02_parallel_independent_tasks",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "Chicago hotel Sep 12-14 near a train; separately baseball games on the 13th; pick the hotel closest to the station.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-09-01T09:00:00-05:00",
+   "weekday": "Tuesday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Chicago": [
+     "chi",
+     "Chicago, IL"
+    ]
+   },
+   "hotels": [
+    {
+     "name": "River North Suites",
+     "city": "Chicago",
+     "area": "River North",
+     "price_per_night": 260,
+     "rating": 4.7,
+     "walk_min": 6
+    },
+    {
+     "name": "Lakeview Inn",
+     "city": "Chicago",
+     "area": "Lakeview",
+     "price_per_night": 180,
+     "rating": 4.5,
+     "walk_min": 12
+    },
+    {
+     "name": "Loop Central Hotel",
+     "city": "Chicago",
+     "area": "Loop",
+     "price_per_night": 240,
+     "rating": 4.4,
+     "walk_min": 2
+    },
+    {
+     "name": "Prairie House B&B",
+     "city": "Chicago",
+     "area": "Pilsen",
+     "price_per_night": 150,
+     "rating": 4.8,
+     "walk_min": 22
+    }
+   ],
+   "events": [
+    {
+     "name": "Cubs vs. Cardinals",
+     "city": "Chicago",
+     "date": "2026-09-13",
+     "category": "baseball",
+     "venue": "Wrigley Field",
+     "time": "13:20",
+     "price": 45
+    },
+    {
+     "name": "White Sox vs. Twins",
+     "city": "Chicago",
+     "date": "2026-09-13",
+     "category": "baseball",
+     "venue": "Rate Field",
+     "time": "18:10",
+     "price": 28
+    },
+    {
+     "name": "Lyric Opera: Tosca",
+     "city": "Chicago",
+     "date": "2026-09-13",
+     "category": "opera",
+     "venue": "Civic Opera House",
+     "time": "19:30",
+     "price": 90
+    },
+    {
+     "name": "Cubs vs. Brewers",
+     "city": "Chicago",
+     "date": "2026-09-12",
+     "category": "baseball",
+     "venue": "Wrigley Field",
+     "time": "18:05",
+     "price": 52
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_hotels": {
+    "duration_s": 50,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 18
+    }
+   },
+   "search_events": {
+    "duration_s": 10,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 6
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me a hotel in Chicago from the twelfth to the fourteenth of September, close to a train station.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "While you're at it, is there a Cubs or White Sox game on the thirteenth?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is deep dish actually a Chicago thing, or is it just for tourists?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Which of those hotels is the shortest walk to the train?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_hotel",
+    "event": "task_completed",
+    "delay": 10,
+    "max_wait": 70
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_hotel",
+   "summary": "Near a station: River North 4.7 (6 min), Lakeview 4.5 (12), Loop Central 4.4 (2 min). Closest = Loop Central. Prairie House (22 min) is a trap.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Chicago",
+      "check_in": "2026-09-12",
+      "check_out": "2026-09-14",
+      "max_walk_min_to_station": {
+       "$optional": {
+        "$range": [
+         3,
+         15
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Chicago",
+     "check_in": "2026-09-12",
+     "check_out": "2026-09-14",
+     "max_walk_min_to_station": {
+      "$optional": {
+       "$range": [
+        3,
+        15
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "River North"
+     ],
+     [
+      "Lakeview"
+     ],
+     [
+      "Loop Central"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  },
+  {
+   "goal_id": "g_games",
+   "summary": "Sep 13: Cubs 1:20 pm $45, White Sox 6:10 pm $28. Cubs vs Brewers on the 12th is a trap.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Chicago",
+      "date": "2026-09-13",
+      "category": {
+       "$optional": {
+        "$oneof": [
+         "baseball",
+         "MLB",
+         "sports"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Chicago",
+     "date": "2026-09-13",
+     "category": {
+      "$optional": {
+       "$oneof": [
+        "baseball",
+        "MLB",
+        "sports"
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Cubs"
+     ],
+     [
+      "White Sox"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Deep dish is real but locals often prefer tavern-style thin crust.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "tavern",
+      "thin",
+      "locals",
+      "tourist"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Loop Central Hotel (2 min).",
+   "must_not": "Name a hotel that is farther; mix in the game results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Loop Central"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "river north is the closest",
+     "lakeview is the closest"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Lists the Cubs game on the 12th.",
+  "Recommends Prairie House as near a station.",
+  "Says River North is closest."
+ ]
+}

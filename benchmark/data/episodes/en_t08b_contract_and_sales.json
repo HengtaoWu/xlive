@@ -1,0 +1,353 @@
+{
+ "episode_id": "en_t08b_contract_and_sales",
+ "template_id": "T08_backend_failure_needs_input",
+ "split": "all",
+ "lang": "en",
+ "domain": "office_docs+data_analysis",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S8_needs_input_failure",
+  "S5_status_query",
+  "S2_independent_second_task"
+ ],
+ "user_goal": "Monthly sales by region plus a vendor-contract summary whose file name was wrong.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-04-06T09:30:00+01:00",
+   "weekday": "Monday",
+   "user_files": [
+    "vendor-contract-v3-final.docx",
+    "vendor-contract-v2.docx",
+    "budget-2026.xlsx"
+   ]
+  },
+  "materials": {
+   "aliases": {},
+   "sales_rows": [
+    {
+     "month": "2026-03",
+     "region": "North",
+     "channel": "web",
+     "status": "completed",
+     "orders": 900,
+     "revenue": 210000
+    },
+    {
+     "month": "2026-03",
+     "region": "South",
+     "channel": "web",
+     "status": "completed",
+     "orders": 800,
+     "revenue": 160000
+    },
+    {
+     "month": "2026-03",
+     "region": "West",
+     "channel": "web",
+     "status": "completed",
+     "orders": 700,
+     "revenue": 190000
+    },
+    {
+     "month": "2026-02",
+     "region": "North",
+     "channel": "web",
+     "status": "completed",
+     "orders": 850,
+     "revenue": 180000
+    },
+    {
+     "month": "2026-02",
+     "region": "South",
+     "channel": "web",
+     "status": "completed",
+     "orders": 820,
+     "revenue": 170000
+    },
+    {
+     "month": "2026-02",
+     "region": "West",
+     "channel": "web",
+     "status": "completed",
+     "orders": 600,
+     "revenue": 150000
+    }
+   ],
+   "files": {
+    "vendor-contract-v3-final.docx": {
+     "readable": true,
+     "points": [
+      "Term: 24 months, auto-renews unless cancelled 60 days before",
+      "Price increase capped at 4% per year",
+      "Termination for convenience with 90 days' notice"
+     ]
+    },
+    "vendor-contract-v2.docx": {
+     "readable": true,
+     "points": [
+      "Term: 12 months",
+      "No price cap"
+     ]
+    }
+   }
+  },
+  "tool_behaviors": {
+   "analyze_sales": {
+    "duration_s": 55,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "summarize_document": {
+    "duration_s": 8,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Pull together last month's revenue by region for me.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And summarize the vendor contract, vendor-contract-v3.docx.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Are we up versus February so far, do you think?",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u2",
+    "delay": 8
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Oh, it's called vendor-contract-v3-final.docx, sorry.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_contract",
+    "event": "task_needs_input",
+    "gap": 1,
+    "max_wait": 30,
+    "fallback_s": 45
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "So what's the headline for my boss?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_sales",
+    "event": "task_completed",
+    "delay": 10,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_sales",
+   "summary": "March by region: North 210k, West 190k, South 160k (total 560k, up from 500k). February puts North 180k (trap).",
+   "match": {
+    "tool": "analyze_sales"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "month": "2026-03",
+      "group_by": "region",
+      "metric": "revenue"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "month": "2026-03",
+     "group_by": "region",
+     "metric": "revenue",
+     "exclude_refunded": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "North"
+     ],
+     [
+      "210"
+     ],
+     [
+      "560"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_contract",
+   "summary": "'vendor-contract-v3.docx' does not exist → needs_input; user gives the -final name.",
+   "match": {
+    "tool": "summarize_document"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "file": "vendor-contract-v3.docx"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "file"
+     ],
+     "constraints": {
+      "file": "vendor-contract-v3-final.docx"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "file": "vendor-contract-v3-final.docx",
+     "focus": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "24 months",
+      "24-month",
+      "two years"
+     ],
+     [
+      "4%",
+      "4 percent",
+      "four percent"
+     ],
+     [
+      "60 days",
+      "90 days"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u5"
+   ],
+   "problem_report": {
+    "event": "task_needs_input",
+    "key_facts": [
+     [
+      "couldn't find",
+      "can't find",
+      "no file",
+      "not find",
+      "doesn't exist",
+      "didn't find"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "status_answer",
+   "must": "Say the analysis is still running; no guessing. If the file problem has arrived, mention it.",
+   "must_not": "Guess a trend.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "can't tell",
+      "not yet",
+      "still"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "we're up",
+     "we are up",
+     "we're down"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Re-run on the right file.",
+   "must_not": "Only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "final"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "grounded_answer",
+   "must": "Grounded headline from the results (560k, North 210k).",
+   "must_not": "Invent numbers.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "560",
+      "210",
+      "North"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Summarizes v2 or invents contract terms.",
+  "Claims a trend before the analysis returns.",
+  "Never tells the user the file wasn't found."
+ ]
+}

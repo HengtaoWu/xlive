@@ -1,0 +1,217 @@
+{
+ "episode_id": "en_t19c_flight_budget_whatif",
+ "template_id": "T19_hypothetical_no_change",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "hypothetical_no_action",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Flights Atlanta→Miami under $250; user wonders about $300 but keeps $250.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-02-23T08:00:00-05:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Atlanta": [
+     "ATL"
+    ],
+    "Miami": [
+     "MIA"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "DL 1820",
+     "airline": "Delta",
+     "origin": "Atlanta",
+     "destination": "Miami",
+     "date": "2026-03-06",
+     "depart": "17:30",
+     "price": 289,
+     "stops": 0
+    },
+    {
+     "flight_no": "F9 1102",
+     "airline": "Frontier",
+     "origin": "Atlanta",
+     "destination": "Miami",
+     "date": "2026-03-06",
+     "depart": "06:15",
+     "price": 118,
+     "stops": 0
+    },
+    {
+     "flight_no": "AA 2214",
+     "airline": "American",
+     "origin": "Atlanta",
+     "destination": "Miami",
+     "date": "2026-03-06",
+     "depart": "12:40",
+     "price": 236,
+     "stops": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 52,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Flights from Atlanta to Miami on Friday the sixth, under two-fifty.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "What if I went up to three hundred, would that open things up much?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Let's just see what two-fifty gets me first.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Do I need to check a bag for a three-day trip, or can I do carry-on?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "≤250: Frontier 118 (6:15am), American 236. Delta 289 only if budget raised (trap).",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Atlanta",
+      "destination": "Miami",
+      "date": "2026-03-06",
+      "max_price": 250
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Atlanta",
+     "destination": "Miami",
+     "date": "2026-03-06",
+     "max_price": 250
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Frontier",
+      "118"
+     ],
+     [
+      "American",
+      "236"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "no_change",
+   "must": "Answer; keep 250.",
+   "must_not": "Raise the cap to 300.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "250"
+     ],
+     [
+      "unless",
+      "for now",
+      "keep"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "no_change",
+   "must": "Acknowledge; no action.",
+   "must_not": "Change anything.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "250",
+      "sticking"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Carry-on fine; budget airlines bin fees.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "carry-on",
+      "carry on"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Raises the cap to 300.",
+  "Offers Delta at 289."
+ ]
+}

@@ -1,0 +1,291 @@
+{
+ "episode_id": "en_t17c_recipes_baby_crying",
+ "template_id": "T17_silent_arrival_deliver_on_resume",
+ "split": "all",
+ "lang": "en",
+ "domain": "cooking",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "silence_request_not_cancel",
+  "S7_result_arrives_during_silence",
+  "resume_delivery",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "Vegetarian chickpea dinner under 30 minutes; the baby wakes; recipes are delivered when the parent returns.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-07-13T18:05:00-07:00",
+   "weekday": "Monday"
+  },
+  "materials": {
+   "recipes": [
+    {
+     "name": "Chickpea Spinach Curry",
+     "ingredients": [
+      "chickpeas",
+      "spinach",
+      "coconut milk",
+      "onion"
+     ],
+     "diet": [
+      "vegetarian",
+      "vegan",
+      "gluten_free"
+     ],
+     "time_min": 25
+    },
+    {
+     "name": "Crispy Chickpea Tacos",
+     "ingredients": [
+      "chickpeas",
+      "tortillas",
+      "cabbage",
+      "lime"
+     ],
+     "diet": [
+      "vegetarian",
+      "vegan"
+     ],
+     "time_min": 20
+    },
+    {
+     "name": "Chickpea Shakshuka",
+     "ingredients": [
+      "chickpeas",
+      "eggs",
+      "tomatoes",
+      "onion"
+     ],
+     "diet": [
+      "vegetarian",
+      "gluten_free"
+     ],
+     "time_min": 35
+    },
+    {
+     "name": "Chicken and Chickpea Stew",
+     "ingredients": [
+      "chickpeas",
+      "chicken",
+      "tomatoes"
+     ],
+     "diet": [
+      "gluten_free"
+     ],
+     "time_min": 30
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "find_recipes": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me a vegetarian dinner with chickpeas, thirty minutes max.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Is canned chickpea liquid actually useful for anything?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh no, the baby's up. Hold that thought.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "hurried"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay, he's back down. Where were we?",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u3",
+    "delay": 22
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Which one's less work with one hand free?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rec",
+   "summary": "≤30 veg: Tacos 20, Curry 25. Shakshuka 35 (too long), chicken stew (not veg).",
+   "match": {
+    "tool": "find_recipes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "ingredients": {
+       "$contains": [
+        "chickpeas"
+       ]
+      },
+      "diet": "vegetarian",
+      "max_time_min": {
+       "$range": [
+        30,
+        30
+       ]
+      },
+      "servings": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "ingredients": {
+      "$contains": [
+       "chickpeas"
+      ]
+     },
+     "diet": "vegetarian",
+     "max_time_min": {
+      "$range": [
+       30,
+       30
+      ]
+     },
+     "servings": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Tacos"
+     ],
+     [
+      "Curry"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4",
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Aquafaba.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "aquafaba",
+      "egg white",
+      "meringue"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "silence_request",
+   "must": "Minimal ack, then silence.",
+   "must_not": "Keep talking.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "go",
+      "course",
+      "sure"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "resume",
+   "must": "Deliver the recipes that arrived during the pause.",
+   "must_not": "Say it's still searching.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Tacos",
+      "Curry"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_answer",
+   "must": "Pick tacos (20 min, sheet pan).",
+   "must_not": "Pick shakshuka or stew.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "tacos"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "shakshuka",
+     "stew"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Reads the recipes while the parent is away.",
+  "Suggests the 35-minute shakshuka or the chicken stew."
+ ]
+}

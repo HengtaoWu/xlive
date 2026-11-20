@@ -1,0 +1,323 @@
+{
+ "episode_id": "en_t02b_phones_and_case",
+ "template_id": "T02_parallel_independent_tasks",
+ "split": "all",
+ "lang": "en",
+ "domain": "shopping",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "Compare Pixel 9 vs iPhone 16 on price and battery; separately find a rugged case for a Galaxy S23.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-01-12T20:15:00-05:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Pixel 9": [
+     "Google Pixel 9",
+     "the Pixel"
+    ],
+    "iPhone 16": [
+     "Apple iPhone 16",
+     "the iPhone"
+    ],
+    "battery_h": [
+     "battery",
+     "battery life"
+    ],
+    "price": [
+     "cost"
+    ],
+    "galaxy s23 case": [
+     "Galaxy S23 case",
+     "Samsung Galaxy S23 case",
+     "S23 case",
+     "case for galaxy s23"
+    ]
+   },
+   "products": [
+    {
+     "name": "Pixel 9",
+     "price": 799,
+     "battery_h": 24,
+     "storage_gb": 128,
+     "weight_kg": 0.198
+    },
+    {
+     "name": "iPhone 16",
+     "price": 829,
+     "battery_h": 22,
+     "storage_gb": 128,
+     "weight_kg": 0.17
+    }
+   ],
+   "catalog": [
+    {
+     "name": "OtterBox Defender (S23)",
+     "category": "galaxy s23 case",
+     "price": 49,
+     "rating": 4.7,
+     "features": [
+      "rugged"
+     ]
+    },
+    {
+     "name": "Spigen Tough Armor (S23)",
+     "category": "galaxy s23 case",
+     "price": 25,
+     "rating": 4.6,
+     "features": [
+      "rugged",
+      "kickstand"
+     ]
+    },
+    {
+     "name": "Slim Clear Case (S23)",
+     "category": "galaxy s23 case",
+     "price": 12,
+     "rating": 4.2,
+     "features": [
+      "slim"
+     ]
+    },
+    {
+     "name": "OtterBox Defender (S24)",
+     "category": "galaxy s24 case",
+     "price": 49,
+     "rating": 4.8,
+     "features": [
+      "rugged"
+     ]
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "compare_products": {
+    "duration_s": 52,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "search_products": {
+    "duration_s": 11,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 8
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Could you compare the Pixel 9 and the iPhone 16? Price and battery life are what I care about.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And separately, find a rugged case for my old Galaxy S23. My kid keeps dropping it.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is it true that fast charging wears out the battery faster?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Alright, I'll go with whichever one lasts longer on a charge.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_phones",
+    "event": "task_completed",
+    "delay": 12,
+    "max_wait": 70
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_phones",
+   "summary": "Pixel 9 $799 24h vs iPhone 16 $829 22h → Pixel lasts longer. Returns after the case search.",
+   "match": {
+    "tool": "compare_products"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "products": [
+       "Pixel 9",
+       "iPhone 16"
+      ],
+      "aspects": {
+       "$optional": {
+        "$contains": [
+         "price",
+         "battery_h"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "products": [
+      "Pixel 9",
+      "iPhone 16"
+     ],
+     "aspects": {
+      "$optional": {
+       "$contains": [
+        "price",
+        "battery_h"
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "799"
+     ],
+     [
+      "829"
+     ],
+     [
+      "24"
+     ],
+     [
+      "22"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  },
+  {
+   "goal_id": "g_case",
+   "summary": "Rugged S23 cases: OtterBox Defender, Spigen Tough Armor. S24 Defender is a trap.",
+   "match": {
+    "tool": "search_products"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "category": "galaxy s23 case",
+      "features": {
+       "$contains": [
+        "rugged"
+       ]
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "category": "galaxy s23 case",
+     "features": {
+      "$contains": [
+       "rugged"
+      ]
+     },
+     "max_price": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Defender"
+     ],
+     [
+      "Tough Armor"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Nuanced answer (slightly, mostly heat; modern phones manage it).",
+   "must_not": "Only report status; state phone specs before results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "heat",
+      "slightly",
+      "a little",
+      "modern",
+      "myth"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Pick the Pixel 9 (24h vs 22h), grounded in the comparison.",
+   "must_not": "Name the iPhone; confuse with case results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Pixel"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "iphone lasts longer",
+     "the iphone 16 lasts"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Merges the requests or attaches the case to the phone task.",
+  "Recommends an S24 case.",
+  "Says the iPhone lasts longer."
+ ]
+}

@@ -1,0 +1,298 @@
+{
+ "episode_id": "en_t12d_restaurant_service_down",
+ "template_id": "T12_backend_failure_retry_status",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S8_needs_input_failure",
+  "S5_status_query",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Table search fails once (reservation service timeout); the user asks to retry; status and chit-chat during the retry.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-12-14T11:00:00-08:00",
+   "weekday": "Monday",
+   "user_city": "Los Angeles"
+  },
+  "materials": {
+   "aliases": {
+    "Santa Monica": [
+     "SaMo"
+    ]
+   },
+   "restaurants": [
+    {
+     "name": "Ocean Prime",
+     "area": "Santa Monica",
+     "cuisine": "seafood",
+     "price_pp": 95,
+     "rating": 4.5,
+     "max_party": 12,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-12-19": [
+       "18:00",
+       "19:00"
+      ]
+     }
+    },
+    {
+     "name": "Fig",
+     "area": "Santa Monica",
+     "cuisine": "Californian",
+     "price_pp": 60,
+     "rating": 4.4,
+     "max_party": 10,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-12-19": [
+       "17:30"
+      ]
+     }
+    },
+    {
+     "name": "Cassia",
+     "area": "Santa Monica",
+     "cuisine": "Southeast Asian",
+     "price_pp": 55,
+     "rating": 4.7,
+     "max_party": 4,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-12-19": [
+       "18:00"
+      ]
+     }
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_restaurants": {
+    "duration_s": 18,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 18
+    },
+    "fail_first_n": 1,
+    "fail_error": "Reservation service timed out; the search did not complete."
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find a place in Santa Monica that can seat six on Saturday night.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Is parking there as bad as everyone says?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "What? Okay, try again.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_r",
+    "event": "task_failed",
+    "gap": 1,
+    "max_wait": 25,
+    "fallback_s": 40
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Any luck this time?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Holiday dinners every weekend this month. I'm exhausted.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "tired"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_r",
+   "summary": "Sat for 6: Ocean Prime 6/7, Fig 5:30. Cassia max 4 (trap). First attempt fails.",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Santa Monica",
+      "party_size": 6,
+      "date": "2026-12-19",
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "retry",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Santa Monica",
+      "party_size": 6,
+      "date": "2026-12-19",
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "Santa Monica",
+     "party_size": 6,
+     "date": "2026-12-19",
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Ocean Prime"
+     ],
+     [
+      "Fig"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4"
+   ],
+   "problem_report": {
+    "event": "task_failed",
+    "key_facts": [
+     [
+      "timed out",
+      "failed",
+      "didn't work",
+      "didn't go through",
+      "error"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Public structures.",
+   "must_not": "Only say it's searching.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "structure",
+      "garage",
+      "lot"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "problem_ack",
+   "must": "Actually re-run.",
+   "must_not": "Agree verbally only.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "again",
+      "re-run"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "Truthful.",
+   "must_not": "Invent results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "not yet",
+      "still"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "ocean prime",
+     "fig has"
+    ]
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "chitchat_no_action",
+   "must": "Brief.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "December",
+      "good one",
+      "exhaust"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Hides the failure.",
+  "Recommends Cassia (max 4)."
+ ]
+}

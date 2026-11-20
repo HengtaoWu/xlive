@@ -1,0 +1,349 @@
+{
+ "episode_id": "en_t08d_laptops_and_spec_sheet",
+ "template_id": "T08_backend_failure_needs_input",
+ "split": "all",
+ "lang": "en",
+ "domain": "shopping+office_docs",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S8_needs_input_failure",
+  "S5_status_query",
+  "S2_independent_second_task"
+ ],
+ "user_goal": "Compare two monitors; summarize an IT spec sheet that was misnamed; user corrects the name.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-05-18T10:20:00-04:00",
+   "weekday": "Monday",
+   "user_files": [
+    "it-monitor-requirements.pdf",
+    "it-laptop-requirements.pdf"
+   ],
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Dell U2724D": [
+     "Dell 27",
+     "U2724D",
+     "the Dell"
+    ],
+    "LG 27UQ850": [
+     "LG 27",
+     "27UQ850",
+     "the LG"
+    ],
+    "price": [
+     "cost"
+    ]
+   },
+   "products": [
+    {
+     "name": "Dell U2724D",
+     "price": 449,
+     "resolution": "2560x1440",
+     "ports": "USB-C 90W",
+     "warranty_y": 3
+    },
+    {
+     "name": "LG 27UQ850",
+     "price": 499,
+     "resolution": "3840x2160",
+     "ports": "USB-C 90W",
+     "warranty_y": 1
+    }
+   ],
+   "files": {
+    "it-monitor-requirements.pdf": {
+     "readable": true,
+     "points": [
+      "Minimum 3-year warranty",
+      "USB-C with at least 65W charging",
+      "27 inch, QHD or better"
+     ]
+    },
+    "it-laptop-requirements.pdf": {
+     "readable": true,
+     "points": [
+      "16 GB RAM minimum"
+     ]
+    }
+   }
+  },
+  "tool_behaviors": {
+   "compare_products": {
+    "duration_s": 55,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "summarize_document": {
+    "duration_s": 8,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Compare the Dell U2724D and the LG 27UQ850 for the team monitors.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And summarize IT's requirements doc, it's it-requirements.pdf.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is the LG the better pick, you reckon?",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u2",
+    "delay": 8
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Sorry, the file is it-monitor-requirements.pdf.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_specs",
+    "event": "task_needs_input",
+    "gap": 1,
+    "max_wait": 30,
+    "fallback_s": 45
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "So which one do we order?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_monitors",
+    "event": "task_completed",
+    "delay": 10,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_monitors",
+   "summary": "Dell $449 QHD 3y warranty vs LG $499 4K 1y. Only Dell meets the 3-year warranty rule.",
+   "match": {
+    "tool": "compare_products"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "products": [
+       "Dell U2724D",
+       "LG 27UQ850"
+      ],
+      "aspects": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "products": [
+      "Dell U2724D",
+      "LG 27UQ850"
+     ],
+     "aspects": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "449"
+     ],
+     [
+      "499"
+     ],
+     [
+      "3-year",
+      "three-year",
+      "3 years",
+      "three years"
+     ],
+     [
+      "4K",
+      "3840"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_specs",
+   "summary": "'it-requirements.pdf' doesn't exist → needs_input; user gives monitor file name.",
+   "match": {
+    "tool": "summarize_document"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "file": "it-requirements.pdf"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "file"
+     ],
+     "constraints": {
+      "file": "it-monitor-requirements.pdf"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "file": "it-monitor-requirements.pdf",
+     "focus": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "3-year",
+      "three-year",
+      "3 year",
+      "three year"
+     ],
+     [
+      "65"
+     ],
+     [
+      "27"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u5"
+   ],
+   "problem_report": {
+    "event": "task_needs_input",
+    "key_facts": [
+     [
+      "couldn't find",
+      "can't find",
+      "no file",
+      "doesn't exist",
+      "didn't find"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "status_answer",
+   "must": "No verdict before results.",
+   "must_not": "Pick one as fact.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "can't say",
+      "still",
+      "not yet",
+      "too early"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "the lg is better",
+     "go with the lg"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Re-run on the right file.",
+   "must_not": "Only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "instead",
+      "using"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "grounded_answer",
+   "must": "Dell, because of the 3-year warranty requirement.",
+   "must_not": "Pick the LG.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Dell"
+     ],
+     [
+      "warranty"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": [
+     "order the lg",
+     "go with the lg"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Summarizes the laptop requirements.",
+  "Recommends the LG despite the warranty rule."
+ ]
+}

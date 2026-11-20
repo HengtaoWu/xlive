@@ -1,0 +1,253 @@
+{
+ "episode_id": "en_t20b_sales_metric_revert",
+ "template_id": "T20_revert_modification",
+ "split": "all",
+ "lang": "en",
+ "domain": "data_analysis",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "revert_change",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "October sales by channel: order_count → revenue + exclude refunds → back to order_count, refunds still excluded.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-11-16T09:00:00-08:00",
+   "weekday": "Monday",
+   "data_sources": [
+    "orders warehouse"
+   ]
+  },
+  "materials": {
+   "sales_rows": [
+    {
+     "month": "2026-10",
+     "channel": "web",
+     "region": "N",
+     "status": "completed",
+     "orders": 1200,
+     "revenue": 96000
+    },
+    {
+     "month": "2026-10",
+     "channel": "web",
+     "region": "N",
+     "status": "refunded",
+     "orders": 300,
+     "revenue": 24000
+    },
+    {
+     "month": "2026-10",
+     "channel": "app",
+     "region": "N",
+     "status": "completed",
+     "orders": 1350,
+     "revenue": 81000
+    },
+    {
+     "month": "2026-10",
+     "channel": "app",
+     "region": "N",
+     "status": "refunded",
+     "orders": 50,
+     "revenue": 3000
+    },
+    {
+     "month": "2026-10",
+     "channel": "retail",
+     "region": "N",
+     "status": "completed",
+     "orders": 900,
+     "revenue": 108000
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "analyze_sales": {
+    "duration_s": 46,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 18
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Break down October order counts by channel.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Wait, do revenue instead, and leave out refunded orders.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "What's a normal refund rate for e-commerce?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Ugh, sorry, my boss wants order counts after all. Go back to that, but still without refunds.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_s",
+   "summary": "Orders excl refunds: app 1,350 > web 1,200 > retail 900. With refunds web leads 1,500 (trap); by revenue retail leads (trap).",
+   "match": {
+    "tool": "analyze_sales"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "month": "2026-10",
+      "group_by": "channel",
+      "metric": "order_count"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u2",
+     "deadline_s": 15,
+     "fields": [
+      "exclude_refunded",
+      "metric"
+     ],
+     "constraints": {
+      "month": "2026-10",
+      "group_by": "channel",
+      "metric": "revenue",
+      "exclude_refunded": true
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "metric"
+     ],
+     "constraints": {
+      "month": "2026-10",
+      "group_by": "channel",
+      "metric": "order_count",
+      "exclude_refunded": true
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "month": "2026-10",
+     "group_by": "channel",
+     "metric": "order_count",
+     "exclude_refunded": true
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "app"
+     ],
+     [
+      "1,350",
+      "1350"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "constraint_update",
+   "must": "metric→revenue + exclude refunds.",
+   "must_not": "Apply only one.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "revenue"
+     ],
+     [
+      "refund"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Single digits; apparel higher.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "percent",
+      "%",
+      "single digit",
+      "apparel"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Revert metric; keep the exclusion.",
+   "must_not": "Re-include refunds; stay on revenue.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "order count"
+     ],
+     [
+      "refund"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Reports web first (refunds included).",
+  "Reports revenue."
+ ]
+}

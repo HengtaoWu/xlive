@@ -1,0 +1,289 @@
+{
+ "episode_id": "en_t12c_price_compare_retry",
+ "template_id": "T12_backend_failure_retry_status",
+ "split": "all",
+ "lang": "en",
+ "domain": "shopping",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S8_needs_input_failure",
+  "S5_status_query",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Compare two strollers; the catalog service fails once; user asks to retry; status asked.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-08-24T14:00:00+01:00",
+   "weekday": "Monday",
+   "currency": "GBP"
+  },
+  "materials": {
+   "aliases": {
+    "Bugaboo Fox 5": [
+     "Bugaboo",
+     "the Bugaboo",
+     "Fox 5"
+    ],
+    "Joolz Day+": [
+     "Joolz",
+     "the Joolz",
+     "Joolz Day plus"
+    ],
+    "price": [
+     "cost"
+    ],
+    "weight_kg": [
+     "weight"
+    ]
+   },
+   "products": [
+    {
+     "name": "Bugaboo Fox 5",
+     "price": 1099,
+     "weight_kg": 9.9,
+     "fold": "one-piece"
+    },
+    {
+     "name": "Joolz Day+",
+     "price": 899,
+     "weight_kg": 12.5,
+     "fold": "two-piece"
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "compare_products": {
+    "duration_s": 18,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 18
+    },
+    "fail_first_n": 1,
+    "fail_error": "Catalog service unavailable (503). Comparison not completed."
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Compare the Bugaboo Fox 5 and the Joolz Day plus for me.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Do we really need a bassinet, or is a reclining seat enough for a newborn?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Annoying. Can you try once more?",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_cmp",
+    "event": "task_failed",
+    "gap": 1,
+    "max_wait": 25,
+    "fallback_s": 40
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Did it work this time?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "I can't believe we're spending this much on wheels.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_cmp",
+   "summary": "Bugaboo £1,099 9.9kg vs Joolz £899 12.5kg. First run fails (503).",
+   "match": {
+    "tool": "compare_products"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "products": [
+       "Bugaboo Fox 5",
+       "Joolz Day+"
+      ],
+      "aspects": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "retry",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "products": [
+       "Bugaboo Fox 5",
+       "Joolz Day+"
+      ],
+      "aspects": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "products": [
+      "Bugaboo Fox 5",
+      "Joolz Day+"
+     ],
+     "aspects": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "1,099",
+      "1099"
+     ],
+     [
+      "899"
+     ],
+     [
+      "9.9"
+     ],
+     [
+      "12.5"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ],
+   "problem_report": {
+    "event": "task_failed",
+    "key_facts": [
+     [
+      "unavailable",
+      "failed",
+      "didn't work",
+      "didn't go through",
+      "error"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Newborns need a flat position.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "flat"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "problem_ack",
+   "must": "Actually re-run.",
+   "must_not": "Only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "again",
+      "retry",
+      "once more"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "Grounded status.",
+   "must_not": "Invent prices.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "not yet",
+      "still"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "899",
+     "1,099"
+    ]
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "chitchat_no_action",
+   "must": "Brief; no change.",
+   "must_not": "Change or cancel.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "wheels",
+      "ha",
+      "every day"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Never mentions the failure.",
+  "Invents prices during the retry."
+ ]
+}

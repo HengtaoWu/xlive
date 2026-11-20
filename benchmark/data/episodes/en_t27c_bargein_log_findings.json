@@ -1,0 +1,224 @@
+{
+ "episode_id": "en_t27c_bargein_log_findings",
+ "template_id": "T27_bargein_during_delivery",
+ "split": "all",
+ "lang": "en",
+ "domain": "code_debugging",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S7_bargein_during_delivery",
+  "redelivery_after_interrupt",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "User interrupts the log read-out to ask if it's still happening.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-08-24T11:00:00-07:00",
+   "weekday": "Monday",
+   "services": [
+    "profile-service"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "profile-service": [
+     "profile service",
+     "profiles"
+    ]
+   },
+   "logs": {
+    "profile-service": {
+     "last_24h": {
+      "window": "24h",
+      "total_errors": 510,
+      "groups": [
+       {
+        "error": "Redis connection refused",
+        "count": 480,
+        "peak": "06:10-06:40, none since"
+       },
+       {
+        "error": "avatar upload 413 too large",
+        "count": 30,
+        "peak": "spread"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "tool_behaviors": {
+   "triage_logs": {
+    "duration_s": 32,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Check the profile service errors from the last day.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Should a profile service even depend on Redis being up?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Wait, is it still happening?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_l",
+    "event": "task_completed",
+    "delay": 1.8,
+    "max_wait": 50,
+    "barge_in": true
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Phew. Okay.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_l",
+   "summary": "480 Redis refused 6:10–6:40, none since; 30 upload 413s.",
+   "match": {
+    "tool": "triage_logs"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "profile-service",
+      "time_window": "last_24h",
+      "min_level": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "profile-service",
+     "time_window": "last_24h",
+     "min_level": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Redis"
+     ],
+     [
+      "6:10",
+      "6:40",
+      "none since",
+      "stopped"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u3"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Cache with fallback.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "cache",
+      "fall back",
+      "fallback"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "grounded_answer",
+   "must": "Stopped at 6:40.",
+   "must_not": "Say it's ongoing.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "no",
+      "stopped",
+      "none since"
+     ],
+     [
+      "6:40"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": [
+     "still happening",
+     "it's ongoing"
+    ]
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "recovered",
+      "phew",
+      "good"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Says the errors are ongoing.",
+  "Ignores the interruption."
+ ]
+}

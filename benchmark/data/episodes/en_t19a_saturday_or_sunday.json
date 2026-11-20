@@ -1,0 +1,248 @@
+{
+ "episode_id": "en_t19a_saturday_or_sunday",
+ "template_id": "T19_hypothetical_no_change",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "hypothetical_no_action",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Dinner for 5 Saturday in Capitol Hill; user wonders aloud about Sunday but keeps Saturday.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-01T12:00:00-07:00",
+   "weekday": "Monday",
+   "user_city": "Seattle"
+  },
+  "materials": {
+   "aliases": {
+    "Capitol Hill": [
+     "Cap Hill"
+    ]
+   },
+   "restaurants": [
+    {
+     "name": "Spinasse",
+     "area": "Capitol Hill",
+     "cuisine": "Italian",
+     "price_pp": 85,
+     "rating": 4.8,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-06-06": [
+       "21:00"
+      ],
+      "2026-06-07": [
+       "18:00",
+       "19:30"
+      ]
+     }
+    },
+    {
+     "name": "Omega Ouzeri",
+     "area": "Capitol Hill",
+     "cuisine": "Greek",
+     "price_pp": 50,
+     "rating": 4.6,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-06-06": [
+       "18:30",
+       "20:00"
+      ],
+      "2026-06-07": [
+       "19:00"
+      ]
+     }
+    },
+    {
+     "name": "Lionhead",
+     "area": "Capitol Hill",
+     "cuisine": "Chinese",
+     "price_pp": 40,
+     "rating": 4.5,
+     "max_party": 4,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-06-06": [
+       "19:00"
+      ]
+     }
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_restaurants": {
+    "duration_s": 38,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find a dinner spot on Capitol Hill for five this Saturday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Hmm, would Sunday be easier to get a table, do you think?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "No, Saturday's the only day everyone's free.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Any tips for a group dinner where one person always skips paying?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_r",
+   "summary": "Sat for 5: Spinasse 9pm only, Omega 6:30/8. Sunday slots exist but the user kept Saturday.",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Capitol Hill",
+      "party_size": 5,
+      "date": "2026-06-06",
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "cuisine": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "Capitol Hill",
+     "party_size": 5,
+     "date": "2026-06-06",
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "cuisine": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Spinasse"
+     ],
+     [
+      "Omega"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "no_change",
+   "must": "Answer the hypothetical; do NOT change the date.",
+   "must_not": "Switch the search to Sunday.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Saturday"
+     ],
+     [
+      "Sunday"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "no_change",
+   "must": "Confirm Saturday; no action.",
+   "must_not": "Change anything.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Saturday"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Split checks / request at table.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "separate",
+      "split",
+      "request"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Modifies the date to Sunday.",
+  "Reports Sunday slots."
+ ]
+}

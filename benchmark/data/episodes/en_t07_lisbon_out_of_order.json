@@ -1,0 +1,405 @@
+{
+ "episode_id": "en_t07_lisbon_out_of_order",
+ "template_id": "T07_out_of_order_delivery_topic_shift",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S7_out_of_order_results",
+  "S7_result_arrives_while_user_speaks",
+  "S1_related_qa_during_wait",
+  "no_capability_no_fabrication"
+ ],
+ "user_goal": "Flights London→Lisbon on Sun 10 May and a hotel 10–14 May near a metro; chat about the city meanwhile.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-04-06T12:30:00+01:00",
+   "weekday": "Monday",
+   "user_city": "London",
+   "note": "No booking tool is available; search only."
+  },
+  "materials": {
+   "aliases": {
+    "London": [
+     "LHR",
+     "LGW",
+     "STN",
+     "LTN",
+     "Heathrow",
+     "Gatwick"
+    ],
+    "Lisbon": [
+     "LIS",
+     "Lisboa"
+    ]
+   },
+   "currency": "GBP",
+   "flights": [
+    {
+     "flight_no": "TP1351",
+     "airline": "TAP Air Portugal",
+     "origin": "London",
+     "destination": "Lisbon",
+     "airport": "LHR→LIS",
+     "date": "2026-05-10",
+     "depart": "07:15",
+     "arrive": "10:00",
+     "price": 142,
+     "stops": 0
+    },
+    {
+     "flight_no": "BA500",
+     "airline": "British Airways",
+     "origin": "London",
+     "destination": "Lisbon",
+     "airport": "LHR→LIS",
+     "date": "2026-05-10",
+     "depart": "09:30",
+     "arrive": "12:15",
+     "price": 176,
+     "stops": 0
+    },
+    {
+     "flight_no": "U27613",
+     "airline": "easyJet",
+     "origin": "London",
+     "destination": "Lisbon",
+     "airport": "LGW→LIS",
+     "date": "2026-05-10",
+     "depart": "13:05",
+     "arrive": "15:50",
+     "price": 89,
+     "stops": 0
+    },
+    {
+     "flight_no": "FR8343",
+     "airline": "Ryanair",
+     "origin": "London",
+     "destination": "Lisbon",
+     "airport": "STN→LIS",
+     "date": "2026-05-10",
+     "depart": "18:40",
+     "arrive": "21:25",
+     "price": 74,
+     "stops": 0
+    },
+    {
+     "flight_no": "FR8341",
+     "airline": "Ryanair",
+     "origin": "London",
+     "destination": "Lisbon",
+     "airport": "STN→LIS",
+     "date": "2026-05-11",
+     "depart": "06:10",
+     "arrive": "08:55",
+     "price": 39,
+     "stops": 0
+    }
+   ],
+   "hotels": [
+    {
+     "name": "Alfama Patio Rooms",
+     "city": "Lisbon",
+     "area": "Alfama",
+     "price_per_night": 128,
+     "rating": 4.7,
+     "nearest_station": "Santa Apolónia",
+     "walk_min": 9,
+     "currency": "EUR"
+    },
+    {
+     "name": "Hotel Baixa Lumen",
+     "city": "Lisbon",
+     "area": "Baixa",
+     "price_per_night": 165,
+     "rating": 4.6,
+     "nearest_station": "Baixa-Chiado",
+     "walk_min": 3,
+     "currency": "EUR"
+    },
+    {
+     "name": "Belém River Lodge",
+     "city": "Lisbon",
+     "area": "Belém",
+     "price_per_night": 110,
+     "rating": 4.5,
+     "nearest_station": "none (tram 15E)",
+     "walk_min": 25,
+     "currency": "EUR"
+    },
+    {
+     "name": "Parque Grand",
+     "city": "Lisbon",
+     "area": "Marquês de Pombal",
+     "price_per_night": 210,
+     "rating": 4.4,
+     "nearest_station": "Marquês de Pombal",
+     "walk_min": 2,
+     "currency": "EUR"
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 55,
+    "release_not_before": {
+     "turn": "u4",
+     "offset": 2,
+     "max_hold_s": 40
+    },
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 15
+    }
+   },
+   "search_hotels": {
+    "duration_s": 14,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "I need to get to Lisbon for a conference. Can you look for flights from London on Sunday the tenth of May?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And a hotel from the tenth to the fourteenth, ideally close to a metro station.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1,
+    "max_wait": 8
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "I've never been to Lisbon. Is it really as hilly as people say? I'll be lugging a laptop bag around all day.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.5,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "And the old yellow trams, are they actually worth taking, or are they just for tourists at this point?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.5,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Okay, cool. Book me on the morning flight then.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 2,
+    "max_wait": 20
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_flights",
+   "summary": "Flights London→Lisbon 2026-05-10: FR8343 £74 18:40, U27613 £89 13:05, TP1351 £142 07:15, BA500 £176 09:30. Arrives (mid-u4) after the hotel result. Two morning options exist; there is no booking tool.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "London",
+      "destination": "Lisbon",
+      "date": "2026-05-10"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "London",
+     "destination": "Lisbon",
+     "date": "2026-05-10"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "TP1351",
+      "TAP"
+     ],
+     [
+      "BA500",
+      "British Airways"
+     ],
+     [
+      "U27613",
+      "easyJet"
+     ],
+     [
+      "FR8343",
+      "Ryanair"
+     ],
+     [
+      "74",
+      "89",
+      "142",
+      "176"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_hotels",
+   "summary": "Hotels Lisbon 2026-05-10→2026-05-14, close to metro (walking cap ≤ 15 min, or none). Belém River Lodge (25 min, no metro) must not be presented as near a metro.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Lisbon",
+      "check_in": "2026-05-10",
+      "check_out": "2026-05-14",
+      "max_walk_min_to_station": {
+       "$optional": {
+        "$range": [
+         3,
+         15
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Lisbon",
+     "check_in": "2026-05-10",
+     "check_out": "2026-05-14",
+     "max_walk_min_to_station": {
+      "$optional": {
+       "$range": [
+        3,
+        15
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Alfama Patio"
+     ],
+     [
+      "Baixa Lumen"
+     ],
+     [
+      "Parque Grand"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Confirm Lisbon is hilly (steep streets, cobbles) and give practical advice (metro/elevators/funiculars, comfortable shoes, backpack).",
+   "must_not": "Only talk about the searches.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "hill",
+      "steep"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Answer about the historic trams (Tram 28 is scenic but crowded with tourists). Flight results arrive during this question: deliver them without dropping the tram answer.",
+   "must_not": "Skip the tram question in favour of reading the flight results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "tram 28"
+     ],
+     [
+      "tourist",
+      "crowded",
+      "scenic"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "Not claim to have booked (no booking capability). Resolve 'the morning flight': there are two (TAP 07:15 £142, BA 09:30 £176) – ask which or state the assumption, and explain it can't book directly.",
+   "must_not": "Claim the flight is booked; pick a non-morning flight.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "TP1351",
+      "TAP",
+      "BA500",
+      "British Airways",
+      "7:15",
+      "9:30"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "i've booked",
+     "booked you",
+     "you're booked",
+     "booking confirmed"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Presents hotel results as flight results (hotel returns first).",
+  "Delivers the flight result by cutting across the user's tram question, or drops the tram question.",
+  "Never delivers the flight results, or announces them twice.",
+  "Claims a booking was made."
+ ]
+}

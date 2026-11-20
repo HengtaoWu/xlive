@@ -1,0 +1,332 @@
+{
+ "episode_id": "en_t29c_rental_and_dinner_tweaks",
+ "template_id": "T29_two_modifies_one_utterance",
+ "split": "all",
+ "lang": "en",
+ "domain": "housing+daily_planning",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "multi_task_update",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Seattle rental + Friday dinner; one sentence adds 'cats allowed' to the rental and changes dinner to 5 people.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-16T14:00:00-07:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Seattle": [
+     "SEA"
+    ],
+    "Ballard": [
+     "ballard"
+    ]
+   },
+   "rentals": [
+    {
+     "name": "South Lake Union One-Bed",
+     "city": "Seattle",
+     "rent": 2400,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 10
+    },
+    {
+     "name": "Fremont One-Bed",
+     "city": "Seattle",
+     "rent": 2150,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": true,
+     "commute_min": 18
+    },
+    {
+     "name": "Queen Anne Flat",
+     "city": "Seattle",
+     "rent": 2550,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": true,
+     "commute_min": 15
+    }
+   ],
+   "restaurants": [
+    {
+     "name": "The Walrus and the Carpenter",
+     "area": "Ballard",
+     "cuisine": "seafood",
+     "price_pp": 70,
+     "rating": 4.6,
+     "max_party": 4,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-03-20": [
+       "19:00"
+      ]
+     }
+    },
+    {
+     "name": "Stoneburner",
+     "area": "Ballard",
+     "cuisine": "Italian",
+     "price_pp": 55,
+     "rating": 4.7,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-03-20": [
+       "18:30",
+       "20:00"
+      ]
+     }
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_rentals": {
+    "duration_s": 56,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   },
+   "search_restaurants": {
+    "duration_s": 62,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me a one-bedroom in Seattle under twenty-six hundred.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And a table for four in Ballard on Friday night.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh, the apartment has to allow cats, and make dinner five people.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "How much is a typical pet deposit in Seattle?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rent",
+   "summary": "Pets OK: Fremont 2,150, Queen Anne 2,550. South Lake Union (no pets) is the trap.",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Seattle",
+      "bedrooms": 1,
+      "max_rent": 2600
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "pets_allowed"
+     ],
+     "constraints": {
+      "city": "Seattle",
+      "bedrooms": 1,
+      "max_rent": 2600,
+      "pets_allowed": true
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Seattle",
+     "bedrooms": 1,
+     "max_rent": 2600,
+     "pets_allowed": true
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Fremont"
+     ],
+     [
+      "2,150",
+      "2150"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_r",
+   "summary": "For 5: only Stoneburner; Walrus max 4 (trap).",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Ballard",
+      "party_size": 4,
+      "date": "2026-03-20",
+      "cuisine": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "party_size"
+     ],
+     "constraints": {
+      "area": "Ballard",
+      "party_size": 5,
+      "date": "2026-03-20",
+      "cuisine": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "Ballard",
+     "party_size": 5,
+     "date": "2026-03-20",
+     "cuisine": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Stoneburner"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Each task updated correctly.",
+   "must_not": "Apply only one; swap targets.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "pet",
+      "cat"
+     ],
+     [
+      "five",
+      "5"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Few hundred + pet rent.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "hundred",
+      "pet rent",
+      "deposit"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Recommends the no-pets South Lake Union unit.",
+  "Books The Walrus (max 4)."
+ ]
+}

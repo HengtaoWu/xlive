@@ -1,0 +1,283 @@
+{
+ "episode_id": "en_t12b_report_timeout_retry",
+ "template_id": "T12_backend_failure_retry_status",
+ "split": "all",
+ "lang": "en",
+ "domain": "office_docs",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S8_needs_input_failure",
+  "S5_status_query",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Weekly churn report fails on the first try; retried on request; status asked during the retry.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-15T09:00:00-04:00",
+   "weekday": "Monday",
+   "data_sources": [
+    "CRM",
+    "billing"
+   ]
+  },
+  "materials": {
+   "report": {
+    "title": "Weekly Churn Report",
+    "sections": [
+     "Churn: 2.1% (prev 2.6%)",
+     "Top reason: price",
+     "Saved accounts: 14"
+    ],
+    "headline": "Weekly churn fell to 2.1% from 2.6%; price is the top reason."
+   }
+  },
+  "tool_behaviors": {
+   "generate_report": {
+    "duration_s": 18,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 18
+    },
+    "fail_first_n": 1,
+    "fail_error": "CRM export timed out; the report was not generated."
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Run the weekly churn report, please.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "What actually counts as churn, by the way? Cancellations only, or downgrades too?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Ugh. Okay, try it again.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_rep",
+    "event": "task_failed",
+    "gap": 1,
+    "max_wait": 25,
+    "fallback_s": 40
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Is it done?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Mondays, man.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "tired"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rep",
+   "summary": "First run fails (CRM timeout); retry succeeds: churn 2.1% from 2.6%.",
+   "match": {
+    "tool": "generate_report"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": {
+       "$any": true
+      },
+      "period": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "sections": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "retry",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": {
+       "$any": true
+      },
+      "period": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "sections": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "topic": {
+      "$any": true
+     },
+     "period": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "sections": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "2.1"
+     ],
+     [
+      "2.6"
+     ],
+     [
+      "price"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ],
+   "problem_report": {
+    "event": "task_failed",
+    "key_facts": [
+     [
+      "timed out",
+      "failed",
+      "didn't work",
+      "didn't go through",
+      "error"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Churn vs contraction.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "cancel"
+     ],
+     [
+      "downgrade",
+      "contraction"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "problem_ack",
+   "must": "Actually re-run.",
+   "must_not": "Only say okay without re-running.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "again",
+      "re-run",
+      "rerun",
+      "retry"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "Grounded: retry still running.",
+   "must_not": "Invent results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "not yet",
+      "still"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "2.1",
+     "churn fell"
+    ]
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "chitchat_no_action",
+   "must": "Brief; no change.",
+   "must_not": "Change or cancel.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "monday",
+      "coffee",
+      "tell me"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Never mentions the failure.",
+  "Says it retried without re-running.",
+  "Invents results during the retry."
+ ]
+}

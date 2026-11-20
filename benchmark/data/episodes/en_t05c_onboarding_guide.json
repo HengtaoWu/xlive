@@ -1,0 +1,309 @@
+{
+ "episode_id": "en_t05c_onboarding_guide",
+ "template_id": "T05_status_reference_selective_cancel",
+ "split": "all",
+ "lang": "en",
+ "domain": "office_docs",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S5_status_query",
+  "S5_selective_cancel",
+  "silence_request_not_cancel",
+  "proactive_delivery"
+ ],
+ "user_goal": "Write a new-hire onboarding guide; a parallel search for example checklists is dropped; guide delivered.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-07-27T13:10:00+01:00",
+   "weekday": "Monday",
+   "data_sources": [
+    "HR wiki",
+    "web research"
+   ]
+  },
+  "materials": {
+   "report": {
+    "title": "Engineering Onboarding Guide",
+    "sections": [
+     "Week 1: laptop, accounts, buddy assignment",
+     "Week 2: first bug fix shipped",
+     "30-day check-in with manager"
+    ],
+    "headline": "New hires ship a first bug fix in week 2 and have a 30-day check-in."
+   },
+   "sources": [
+    {
+     "title": "Onboarding checklists that work",
+     "publisher": "PeopleOps Weekly"
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "generate_report": {
+    "duration_s": 70,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 30
+    },
+    "stages": [
+     {
+      "at_frac": 0,
+      "label": "collecting HR wiki pages"
+     },
+     {
+      "at_frac": 0.25,
+      "label": "drafting week one"
+     },
+     {
+      "at_frac": 0.5,
+      "label": "drafting week two"
+     },
+     {
+      "at_frac": 0.75,
+      "label": "drafting the 30-day check-in"
+     }
+    ]
+   },
+   "research_sources": {
+    "duration_s": 110,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 60
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you write up an onboarding guide for new engineers? Week one, week two, and a thirty-day check-in.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Also find a few examples of good onboarding checklists from other companies.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "How's the guide coming along?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Actually skip the examples, I'll wing it. But keep the guide going.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Shh, one sec, I'm on mute and my manager just asked me something.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "whisper"
+  },
+  {
+   "turn_id": "u6",
+   "text": "Alright, I'm here again.",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u5",
+    "delay": 16
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_guide",
+   "summary": "Guide delivered after completion.",
+   "match": {
+    "tool": "generate_report"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": {
+       "$any": true
+      },
+      "sections": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "period": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "topic": {
+      "$any": true
+     },
+     "period": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "sections": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "week 2",
+      "week two"
+     ],
+     [
+      "30-day",
+      "thirty-day",
+      "30 day"
+     ],
+     [
+      "bug fix"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_examples",
+   "summary": "Example checklists: started u2, cancelled u4.",
+   "match": {
+    "tool": "research_sources"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": "engineering onboarding checklist examples",
+      "max_items": 5
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u4",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "status_answer",
+   "must": "Grounded stage of the guide.",
+   "must_not": "Claim it's almost done; talk about the examples.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "drafting",
+      "collecting",
+      "wiki",
+      "section"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "selective_cancel",
+   "must": "Cancel only the examples.",
+   "must_not": "Cancel the guide.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "example"
+     ],
+     [
+      "guide"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "silence_request",
+   "must": "Be quiet / tiny ack.",
+   "must_not": "Keep talking; cancel tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "okay",
+      "sure"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u6",
+   "type": "resume",
+   "must": "Welcome back + grounded status.",
+   "must_not": "Say the examples are still running.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "welcome back",
+      "guide"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Cancels the guide.",
+  "Reports example checklists after cancellation."
+ ]
+}

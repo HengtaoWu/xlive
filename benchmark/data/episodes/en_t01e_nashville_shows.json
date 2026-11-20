@@ -1,0 +1,261 @@
+{
+ "episode_id": "en_t01e_nashville_shows",
+ "template_id": "T01_related_qa_while_waiting",
+ "split": "all",
+ "lang": "en",
+ "domain": "events",
+ "difficulty": "easy",
+ "scenario_tags": [
+  "S1_related_qa_during_wait",
+  "S7_result_arrives_while_user_speaks",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Find shows in Nashville this Saturday; meanwhile ask about getting back late and bringing water in.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-07-13T12:00:00-05:00",
+   "weekday": "Monday",
+   "user_city": "Nashville (on a work trip)",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Nashville": [
+     "Music City"
+    ]
+   },
+   "events": [
+    {
+     "name": "Country Music Hall of Fame Late Hours",
+     "city": "Nashville",
+     "date": "2026-07-18",
+     "category": "exhibition",
+     "venue": "Hall of Fame",
+     "time": "10:00",
+     "price": 30
+    },
+    {
+     "name": "Grand Ole Opry",
+     "city": "Nashville",
+     "date": "2026-07-18",
+     "category": "show",
+     "venue": "Opry House",
+     "time": "19:00",
+     "price": 65
+    },
+    {
+     "name": "Nashville Symphony Pops",
+     "city": "Nashville",
+     "date": "2026-07-18",
+     "category": "show",
+     "venue": "Schermerhorn Symphony Center",
+     "time": "20:00",
+     "price": 55
+    },
+    {
+     "name": "Songwriters Night",
+     "city": "Nashville",
+     "date": "2026-07-18",
+     "category": "show",
+     "venue": "Bluebird Cafe",
+     "time": "21:00",
+     "price": 25
+    },
+    {
+     "name": "Sunday Bluegrass Brunch",
+     "city": "Nashville",
+     "date": "2026-07-19",
+     "category": "show",
+     "venue": "Station Inn",
+     "time": "11:00",
+     "price": 20
+    },
+    {
+     "name": "Beale Street Blues Night",
+     "city": "Memphis",
+     "date": "2026-07-18",
+     "category": "show",
+     "venue": "B.B. King's",
+     "time": "20:00",
+     "price": 15
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_events": {
+    "duration_s": 28,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 9
+    },
+    "release_not_before": {
+     "turn": "u4",
+     "offset": 1.8,
+     "max_hold_s": 40
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "What's on in Nashville this Saturday?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "I'm staying downtown. Is it easy to get back late at night?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "It is so humid here. I've sweated through two shirts already.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Can I bring a water bottle into those places?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Cool, I'll pick one later.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_shows",
+   "summary": "Four Saturday events; Sunday bluegrass and Memphis blues are date/city traps.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Nashville",
+      "date": "2026-07-18"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Nashville",
+     "date": "2026-07-18",
+     "category": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Opry"
+     ],
+     [
+      "Symphony"
+     ],
+     [
+      "Bluebird",
+      "Songwriters"
+     ],
+     [
+      "Hall of Fame"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Walkable; rideshare; surge pricing.",
+   "must_not": "Only say it's searching.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "walk",
+      "rideshare",
+      "Uber",
+      "Lyft",
+      "taxi"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "chitchat_no_action",
+   "must": "Light, brief.",
+   "must_not": "Start or change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "humid",
+      "July",
+      "hydrate",
+      "air condition"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Usually no sealed bottles; empty reusable often OK. Result arrives mid-question: answer first.",
+   "must_not": "Skip the question to read results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "security",
+      "empty",
+      "sealed",
+      "not"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Lists the Sunday or Memphis event.",
+  "Defers the questions until results arrive."
+ ]
+}

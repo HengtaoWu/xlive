@@ -1,0 +1,310 @@
+{
+ "episode_id": "en_t04_sales_revenue_refunds",
+ "template_id": "T04_modify_preserve_constraints",
+ "split": "all",
+ "lang": "en",
+ "domain": "data_analysis",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "Regional comparison of this month's sales; mid-run: exclude refunded orders and rank by revenue, not order count.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-10-20T14:00:00+00:00",
+   "weekday": "Tuesday",
+   "data_sources": [
+    "sales warehouse: orders by month, region, channel, status"
+   ]
+  },
+  "materials": {
+   "sales_rows": [
+    {
+     "month": "2026-10",
+     "region": "North",
+     "channel": "web",
+     "status": "completed",
+     "orders": 410,
+     "revenue": 182000
+    },
+    {
+     "month": "2026-10",
+     "region": "South",
+     "channel": "web",
+     "status": "completed",
+     "orders": 520,
+     "revenue": 151000
+    },
+    {
+     "month": "2026-10",
+     "region": "East",
+     "channel": "web",
+     "status": "completed",
+     "orders": 450,
+     "revenue": 176000
+    },
+    {
+     "month": "2026-10",
+     "region": "West",
+     "channel": "web",
+     "status": "completed",
+     "orders": 300,
+     "revenue": 120000
+    },
+    {
+     "month": "2026-10",
+     "region": "North",
+     "channel": "web",
+     "status": "refunded",
+     "orders": 20,
+     "revenue": 8000
+    },
+    {
+     "month": "2026-10",
+     "region": "South",
+     "channel": "web",
+     "status": "refunded",
+     "orders": 30,
+     "revenue": 9000
+    },
+    {
+     "month": "2026-10",
+     "region": "East",
+     "channel": "web",
+     "status": "refunded",
+     "orders": 60,
+     "revenue": 25000
+    },
+    {
+     "month": "2026-10",
+     "region": "West",
+     "channel": "web",
+     "status": "refunded",
+     "orders": 10,
+     "revenue": 4000
+    },
+    {
+     "month": "2026-09",
+     "region": "North",
+     "channel": "web",
+     "status": "completed",
+     "orders": 380,
+     "revenue": 160000
+    },
+    {
+     "month": "2026-09",
+     "region": "South",
+     "channel": "web",
+     "status": "completed",
+     "orders": 610,
+     "revenue": 199000
+    },
+    {
+     "month": "2026-09",
+     "region": "East",
+     "channel": "web",
+     "status": "completed",
+     "orders": 400,
+     "revenue": 150000
+    },
+    {
+     "month": "2026-09",
+     "region": "West",
+     "channel": "web",
+     "status": "completed",
+     "orders": 290,
+     "revenue": 118000
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "analyze_sales": {
+    "duration_s": 50,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 22
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you analyze this month's sales and compare how the regions are doing?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "By the way, what's a normal refund rate for an online store? Ours feels kind of high lately.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1,
+    "max_wait": 8
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Actually, leave the refunded orders out. And don't rank them by number of orders, I care about revenue.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1,
+    "max_wait": 8
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "What's the actual difference between gross and net revenue, anyway?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.5,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_sales",
+   "summary": "analyze_sales for 2026-10 by region; final version must exclude refunds and use revenue. Correct ranking: North 182,000 > East 176,000 > South 151,000 > West 120,000. (Order count → South first; revenue incl. refunds → East first; September → South first.)",
+   "match": {
+    "tool": "analyze_sales"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "month": "2026-10",
+      "group_by": "region",
+      "metric": {
+       "$optional": {
+        "$oneof": [
+         "order_count",
+         "revenue"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "exclude_refunded"
+     ],
+     "constraints": {
+      "month": "2026-10",
+      "group_by": "region",
+      "metric": "revenue",
+      "exclude_refunded": true
+     },
+     "allowed_extra": [],
+     "allowed_changes": [
+      "exclude_refunded",
+      "metric"
+     ]
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "month": "2026-10",
+     "group_by": "region",
+     "metric": "revenue",
+     "exclude_refunded": true
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "North"
+     ],
+     [
+      "182"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Give a general benchmark with caveats (single digits for many categories, much higher in apparel); it depends on category.",
+   "must_not": "Invent the user's own refund rate before the analysis returns.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "percent",
+      "%",
+      "depends",
+      "category",
+      "apparel",
+      "fashion"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Confirm both changes (exclude refunds; rank by revenue) while keeping this month and by-region; the backend task must actually be updated.",
+   "must_not": "Restart with a different month or grouping; only acknowledge verbally.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "refund"
+     ],
+     [
+      "revenue"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Explain gross vs net revenue (net subtracts refunds/returns, discounts), ideally linking it to the refund exclusion.",
+   "must_not": "Answer only with task status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "net"
+     ],
+     [
+      "refund",
+      "return",
+      "discount",
+      "deduct",
+      "subtract",
+      "minus"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Final analysis still includes refunds or ranks by order count (reports South or East as top).",
+  "Drops 'this month' or 'by region' when applying the update.",
+  "Reports the result of an outdated version as the final answer.",
+  "Says it updated the analysis but the backend task was never changed."
+ ]
+}

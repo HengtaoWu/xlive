@@ -1,0 +1,290 @@
+{
+ "episode_id": "en_t29a_flight_and_hotel_tweaks",
+ "template_id": "T29_two_modifies_one_utterance",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "multi_task_update",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Flights + hotel to Miami; one sentence adds nonstop-only to the flight and extends the hotel by a night.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-01-19T09:00:00-05:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Boston": [
+     "BOS"
+    ],
+    "Miami": [
+     "MIA"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "NK 120",
+     "airline": "Spirit",
+     "origin": "Boston",
+     "destination": "Miami",
+     "date": "2026-02-12",
+     "depart": "06:00",
+     "price": 98,
+     "stops": 1
+    },
+    {
+     "flight_no": "AA 1401",
+     "airline": "American",
+     "origin": "Boston",
+     "destination": "Miami",
+     "date": "2026-02-12",
+     "depart": "09:15",
+     "price": 212,
+     "stops": 0
+    },
+    {
+     "flight_no": "B6 1601",
+     "airline": "JetBlue",
+     "origin": "Boston",
+     "destination": "Miami",
+     "date": "2026-02-12",
+     "depart": "11:40",
+     "price": 189,
+     "stops": 0
+    }
+   ],
+   "hotels": [
+    {
+     "name": "The Betsy",
+     "city": "Miami",
+     "area": "South Beach",
+     "price_per_night": 420,
+     "rating": 4.8,
+     "walk_min": 20
+    },
+    {
+     "name": "Freehand Miami",
+     "city": "Miami",
+     "area": "Miami Beach",
+     "price_per_night": 160,
+     "rating": 4.4,
+     "walk_min": 25
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 56,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   },
+   "search_hotels": {
+    "duration_s": 62,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Flights from Boston to Miami on February twelfth.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And a hotel there from the twelfth to the fifteenth.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh, and make the flight nonstop only, and stay one more night at the hotel, till the sixteenth.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Is February a good time for Miami?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "Nonstop: JetBlue 189, AA 212. Spirit 98 has a stop (trap).",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Boston",
+      "destination": "Miami",
+      "date": "2026-02-12"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "nonstop_only"
+     ],
+     "constraints": {
+      "origin": "Boston",
+      "destination": "Miami",
+      "date": "2026-02-12",
+      "nonstop_only": true
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Boston",
+     "destination": "Miami",
+     "date": "2026-02-12",
+     "nonstop_only": true
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "JetBlue",
+      "189"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_ho",
+   "summary": "Check-out moved 15 → 16.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Miami",
+      "check_in": "2026-02-12",
+      "check_out": "2026-02-15"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "check_out"
+     ],
+     "constraints": {
+      "city": "Miami",
+      "check_in": "2026-02-12",
+      "check_out": "2026-02-16"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Miami",
+     "check_in": "2026-02-12",
+     "check_out": "2026-02-16"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Betsy",
+      "Freehand"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Both modifies applied to the right tasks.",
+   "must_not": "Apply only one; swap targets.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "nonstop"
+     ],
+     [
+      "16",
+      "sixteenth"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Dry, mild.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "dry",
+      "seventies",
+      "75",
+      "warm"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Offers the Spirit one-stop.",
+  "Leaves the hotel ending the 15th."
+ ]
+}

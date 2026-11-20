@@ -1,0 +1,246 @@
+{
+ "episode_id": "en_t27b_bargein_dinner_time",
+ "template_id": "T27_bargein_during_delivery",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S7_bargein_during_delivery",
+  "redelivery_after_interrupt",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "User interrupts the restaurant read-out to ask whether any can do 8pm.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-16T15:00:00-04:00",
+   "weekday": "Monday",
+   "user_city": "Boston"
+  },
+  "materials": {
+   "aliases": {
+    "North End": [
+     "the North End"
+    ]
+   },
+   "restaurants": [
+    {
+     "name": "Giacomo's",
+     "area": "North End",
+     "cuisine": "Italian",
+     "price_pp": 45,
+     "rating": 4.6,
+     "max_party": 6,
+     "wheelchair_accessible": false,
+     "slots": {
+      "2026-03-20": [
+       "17:30",
+       "21:00"
+      ]
+     }
+    },
+    {
+     "name": "Mamma Maria",
+     "area": "North End",
+     "cuisine": "Italian",
+     "price_pp": 85,
+     "rating": 4.7,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-03-20": [
+       "20:00"
+      ]
+     }
+    },
+    {
+     "name": "Carmelina's",
+     "area": "North End",
+     "cuisine": "Italian",
+     "price_pp": 50,
+     "rating": 4.5,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-03-20": [
+       "18:15",
+       "19:45"
+      ]
+     }
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_restaurants": {
+    "duration_s": 32,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find a table for four in the North End on Friday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Should I bring cash? I heard some places there are cash only.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Hang on, can any of them do eight?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_r",
+    "event": "task_completed",
+    "delay": 1.8,
+    "max_wait": 50,
+    "barge_in": true
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Mamma Maria sounds great.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_r",
+   "summary": "8pm: only Mamma Maria. Giacomo's 5:30/9, Carmelina's 6:15/7:45.",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "North End",
+      "party_size": 4,
+      "date": "2026-03-20",
+      "cuisine": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "North End",
+     "party_size": 4,
+     "date": "2026-03-20",
+     "cuisine": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Mamma Maria"
+     ],
+     [
+      "Carmelina"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u3",
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Some cash-only.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "cash"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "grounded_answer",
+   "must": "Mamma Maria at 8.",
+   "must_not": "Keep reading; claim none.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Mamma Maria"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Mamma Maria 4.7.",
+   "must_not": "Pick another.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Mamma Maria"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "giacomo's it is"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Ignores the interruption."
+ ]
+}

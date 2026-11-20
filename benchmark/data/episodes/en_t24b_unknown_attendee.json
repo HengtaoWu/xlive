@@ -1,0 +1,292 @@
+{
+ "episode_id": "en_t24b_unknown_attendee",
+ "template_id": "T24_permanent_failure_alternative",
+ "split": "all",
+ "lang": "en",
+ "domain": "scheduling",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S8_permanent_failure",
+  "problem_report",
+  "corrected_retry",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "Slot search fails because one attendee has no calendar; the user drops them; the agent re-runs.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-10-19T10:00:00-07:00",
+   "weekday": "Monday"
+  },
+  "materials": {
+   "aliases": {
+    "Kim": [
+     "Kim Nguyen"
+    ],
+    "Raj": [
+     "Raj Patel"
+    ]
+   },
+   "calendars": {
+    "2026-10-21": {
+     "me": [
+      [
+       "09:00",
+       "11:00"
+      ],
+      [
+       "13:00",
+       "14:00"
+      ]
+     ],
+     "Kim": [
+      [
+       "11:00",
+       "12:00"
+      ],
+      [
+       "15:00",
+       "16:30"
+      ]
+     ],
+     "Raj": [
+      [
+       "14:00",
+       "15:00"
+      ]
+     ]
+    }
+   }
+  },
+  "tool_behaviors": {
+   "find_meeting_slots": {
+    "duration_s": 18,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find forty-five minutes on Wednesday for me, Kim, Raj and Taylor.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Is forty-five minutes too long for a design review?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh, Taylor's a contractor, they're not on our calendar. Just do the rest of us.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_m",
+    "event": "task_failed",
+    "gap": 1,
+    "max_wait": 25,
+    "fallback_s": 35
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "I'll just forward the invite to Taylor myself.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_m",
+   "summary": "Taylor unknown → failed. Without Taylor: 12–1, 4:30–6 (45 min).",
+   "match": {
+    "tool": "find_meeting_slots"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "attendees": [
+       "me",
+       "Kim",
+       "Raj",
+       "Taylor"
+      ],
+      "date": "2026-10-21",
+      "duration_min": 45,
+      "part_of_day": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "retry",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "attendees": {
+       "$all": [
+        {
+         "$contains": [
+          "Kim",
+          "Raj"
+         ]
+        },
+        {
+         "$excludes": [
+          "Taylor"
+         ]
+        }
+       ]
+      },
+      "date": "2026-10-21",
+      "duration_min": 45,
+      "part_of_day": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "attendees": {
+      "$all": [
+       {
+        "$contains": [
+         "Kim",
+         "Raj"
+        ]
+       },
+       {
+        "$excludes": [
+         "Taylor"
+        ]
+       }
+      ]
+     },
+     "date": "2026-10-21",
+     "duration_min": 45,
+     "part_of_day": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "12",
+      "noon",
+      "12:00"
+     ],
+     [
+      "4:30",
+      "16:30"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "problem_report": {
+    "event": "task_failed",
+    "key_facts": [
+     [
+      "Taylor"
+     ],
+     [
+      "calendar",
+      "couldn't find",
+      "can't see"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "45 is reasonable.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "thirty",
+      "30",
+      "decision",
+      "tight"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "problem_ack",
+   "must": "Re-run without Taylor.",
+   "must_not": "Keep Taylor; only say okay.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Kim"
+     ],
+     [
+      "Raj",
+      "re-run",
+      "again"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief.",
+   "must_not": "Change anything.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "sounds good",
+      "good",
+      "okay"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Pretends Taylor is free.",
+  "Doesn't re-run."
+ ]
+}

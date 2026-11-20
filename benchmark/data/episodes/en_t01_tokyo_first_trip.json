@@ -1,0 +1,294 @@
+{
+ "episode_id": "en_t01_tokyo_first_trip",
+ "template_id": "T01_related_qa_while_waiting",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "easy",
+ "scenario_tags": [
+  "S1_related_qa_during_wait",
+  "S7_result_arrives_while_user_speaks",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Find a Shanghai→Tokyo flight for this Friday; meanwhile get first-timer advice on where to stay and how to get from the airport.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-16T10:05:00+08:00",
+   "weekday": "Monday",
+   "user_city": "Shanghai",
+   "currency": "USD"
+  },
+  "materials": {
+   "currency": "USD",
+   "aliases": {
+    "Shanghai": [
+     "PVG",
+     "SHA",
+     "Shanghai Pudong",
+     "Pudong"
+    ],
+    "Tokyo": [
+     "HND",
+     "NRT",
+     "TYO",
+     "Tokyo Haneda",
+     "Tokyo Narita",
+     "Haneda",
+     "Narita"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "9C8515",
+     "airline": "Spring Airlines",
+     "origin": "Shanghai",
+     "destination": "Tokyo",
+     "airport": "PVG→NRT",
+     "date": "2026-03-20",
+     "depart": "06:40",
+     "arrive": "10:25",
+     "price": 189,
+     "stops": 0
+    },
+    {
+     "flight_no": "MU523",
+     "airline": "China Eastern",
+     "origin": "Shanghai",
+     "destination": "Tokyo",
+     "airport": "PVG→HND",
+     "date": "2026-03-20",
+     "depart": "08:55",
+     "arrive": "12:40",
+     "price": 268,
+     "stops": 0
+    },
+    {
+     "flight_no": "JL892",
+     "airline": "Japan Airlines",
+     "origin": "Shanghai",
+     "destination": "Tokyo",
+     "airport": "PVG→HND",
+     "date": "2026-03-20",
+     "depart": "14:30",
+     "arrive": "18:15",
+     "price": 330,
+     "stops": 0
+    },
+    {
+     "flight_no": "NH968",
+     "airline": "ANA",
+     "origin": "Shanghai",
+     "destination": "Tokyo",
+     "airport": "PVG→HND",
+     "date": "2026-03-20",
+     "depart": "10:20",
+     "arrive": "14:05",
+     "price": 352,
+     "stops": 0
+    },
+    {
+     "flight_no": "9C8517",
+     "airline": "Spring Airlines",
+     "origin": "Shanghai",
+     "destination": "Tokyo",
+     "airport": "PVG→NRT",
+     "date": "2026-03-21",
+     "depart": "06:40",
+     "arrive": "10:25",
+     "price": 159,
+     "stops": 0
+    },
+    {
+     "flight_no": "CA167",
+     "airline": "Air China",
+     "origin": "Beijing",
+     "destination": "Tokyo",
+     "airport": "PEK→HND",
+     "date": "2026-03-20",
+     "depart": "08:00",
+     "arrive": "12:20",
+     "price": 150,
+     "stops": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 28,
+    "release_not_before": {
+     "turn": "u4",
+     "offset": 1.8,
+     "max_hold_s": 40
+    },
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Hey, could you check flights from Shanghai to Tokyo for this Friday?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "While that's running... it's my first time in Tokyo. Which area should I stay in if I want to get around by subway easily?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1,
+    "max_wait": 8
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Ha, Shinjuku sounds fun. I've always wanted to see the Shibuya crossing at night, though my friend says it's overrated.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 12
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Oh, and how do I get from the airport into the city? Is there a train, or should I just grab a taxi?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.5,
+    "max_wait": 12
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Great, thanks. I'll think about which one to book tonight.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 2,
+    "max_wait": 25
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_flights",
+   "summary": "One flight search Shanghai→Tokyo on 2026-03-20; cheapest is Spring Airlines 9C8515 at $189 (lands Narita); results delivered once.",
+   "match": {
+    "tool": "search_flights",
+    "args": {
+     "destination": "Tokyo"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Shanghai",
+      "destination": "Tokyo",
+      "date": "2026-03-20"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Shanghai",
+     "destination": "Tokyo",
+     "date": "2026-03-20"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "9C8515",
+      "Spring"
+     ],
+     [
+      "189"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Recommend one or more well-connected areas (e.g. Shinjuku, Tokyo Station/Marunouchi, Shibuya, Ueno) with a reason tied to subway/rail access. May mention the flight search is still running.",
+   "must_not": "Only say it is still searching; claim flight results that have not arrived.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Shinjuku",
+      "Shibuya",
+      "Ueno",
+      "Tokyo Station",
+      "Ginza",
+      "Yamanote"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "chitchat_no_action",
+   "must": "Respond briefly and naturally to the chit-chat (e.g. a light opinion on Shibuya crossing).",
+   "must_not": "Start a hotel search or change the flight search; deliver a long unrelated monologue.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "crossing",
+      "Shibuya",
+      "night",
+      "worth"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Explain airport-to-city options (Keikyu / Tokyo Monorail from Haneda, Narita Express / Skyliner from Narita, limousine bus, taxi is expensive). Ideally notes that the cheapest flight lands at Narita. The flight result arrives while the user asks this: answer first, deliver results right after.",
+   "must_not": "Ignore the question to only read out flight results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Keikyu",
+      "Monorail",
+      "Narita Express",
+      "Skyliner",
+      "limousine",
+      "train"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Answers u2/u4 only with 'still searching' or defers them until results arrive.",
+  "Reports a flight not on 2026-03-20 or not from Shanghai (e.g. $159 on Saturday, $150 from Beijing).",
+  "Starts an unrequested hotel search or modifies the search after chit-chat.",
+  "Never reports flight results, or reports them repeatedly without being asked.",
+  "Cuts across the user's airport question by reading results before answering it."
+ ]
+}

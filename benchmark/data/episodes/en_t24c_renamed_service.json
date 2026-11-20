@@ -1,0 +1,247 @@
+{
+ "episode_id": "en_t24c_renamed_service",
+ "template_id": "T24_permanent_failure_alternative",
+ "split": "all",
+ "lang": "en",
+ "domain": "code_debugging",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S8_permanent_failure",
+  "problem_report",
+  "corrected_retry",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "Log triage fails because the service name doesn't exist; the user gives the new name; the agent re-runs.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-01T10:00:00-07:00",
+   "weekday": "Monday",
+   "services": [
+    "pay-gateway",
+    "user-center"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "pay-gateway": [
+     "pay gateway",
+     "the gateway"
+    ]
+   },
+   "logs": {
+    "pay-gateway": {
+     "last_24h": {
+      "window": "last 24h",
+      "total_errors": 420,
+      "groups": [
+       {
+        "error": "Bank channel signature failure (cert expired)",
+        "count": 390,
+        "peak": "from 3 a.m."
+       },
+       {
+        "error": "Duplicate webhook callback",
+        "count": 30,
+        "peak": "spread"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "tool_behaviors": {
+   "triage_logs": {
+    "duration_s": 16,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Check the payment-svc error logs from the last day.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "How should we tier our production alerts, in general?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh, right, that service got renamed to pay-gateway.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_l",
+    "event": "task_failed",
+    "gap": 1,
+    "max_wait": 25,
+    "fallback_s": 35
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Renames like that always bite us, nobody updates the docs.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "annoyed"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_l",
+   "summary": "payment-svc unknown → failed; pay-gateway: 390 expired-cert signature failures since 3 a.m.",
+   "match": {
+    "tool": "triage_logs"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "payment-svc",
+      "time_window": "last_24h",
+      "min_level": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "retry",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "pay-gateway",
+      "time_window": "last_24h",
+      "min_level": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "pay-gateway",
+     "time_window": "last_24h",
+     "min_level": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "cert",
+      "certificate",
+      "signature"
+     ],
+     [
+      "390"
+     ],
+     [
+      "3 a.m.",
+      "3 am",
+      "three"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "problem_report": {
+    "event": "task_failed",
+    "key_facts": [
+     [
+      "couldn't find",
+      "can't find",
+      "doesn't exist",
+      "no service",
+      "didn't find"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Three tiers by impact.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "tier",
+      "page",
+      "level"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "problem_ack",
+   "must": "Re-run with the new name.",
+   "must_not": "Just say okay.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "pay-gateway"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief empathy.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "classic",
+      "yeah",
+      "trap",
+      "docs"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Fabricates logs for payment-svc.",
+  "Doesn't re-run."
+ ]
+}

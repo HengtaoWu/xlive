@@ -1,0 +1,228 @@
+{
+ "episode_id": "en_t06b_hvac_quotes",
+ "template_id": "T06_partial_result_known_unknown",
+ "split": "all",
+ "lang": "en",
+ "domain": "home_services",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S6_partial_result",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "AC quotes incl.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-15T10:00:00-05:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "CoolAir": [
+     "Cool Air",
+     "CoolAir HVAC"
+    ],
+    "Breeze": [
+     "Breeze Climate",
+     "Breeze HVAC"
+    ]
+   },
+   "vendors": [
+    {
+     "name": "CoolAir",
+     "base_price": 6200,
+     "install_fee": 1300,
+     "install_fee_ready_s": 0
+    },
+    {
+     "name": "Breeze",
+     "base_price": 5900,
+     "install_fee": 2000,
+     "install_fee_ready_s": 9999
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "compare_quotes": {
+    "duration_s": 46,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    },
+    "partial": {
+     "at_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you compare the CoolAir and Breeze quotes for the new AC unit? Installation included, and we can't go over eight thousand.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "So, which one's cheaper so far?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_quotes",
+    "event": "task_partial",
+    "delay": 4,
+    "max_wait": 30
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "While we wait, does a bigger unit cool the house better, or is that a myth?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Great, let's go with that one then.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_quotes",
+    "event": "task_completed",
+    "delay": 12,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_quotes",
+   "summary": "AC quotes incl. install, budget 8000. Partial: CoolAir 7,500 known; Breeze base 5,900 lower but fee missing. Final Breeze 7,900 → CoolAir cheaper.",
+   "match": {
+    "tool": "compare_quotes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "vendors": [
+       "CoolAir",
+       "Breeze"
+      ],
+      "include_install_fee": true,
+      "budget": 8000
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "vendors": [
+      "CoolAir",
+      "Breeze"
+     ],
+     "include_install_fee": true,
+     "budget": 8000
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "CoolAir",
+      "Cool Air"
+     ],
+     [
+      "7,500",
+      "7500"
+     ],
+     [
+      "7,900",
+      "7900"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "partial_answer",
+   "must": "Known vs unknown; no premature winner.",
+   "must_not": "Declare Breeze cheaper.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "can't tell",
+      "not yet",
+      "depends",
+      "isn't in",
+      "missing"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "breeze is cheaper",
+     "go with breeze"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Oversizing is counterproductive (short cycling, humidity).",
+   "must_not": "Answer with quote status only.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "oversize",
+      "cycl",
+      "humid",
+      "sizing",
+      "myth"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Confirm CoolAir consistent with the final numbers.",
+   "must_not": "Confirm Breeze.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "CoolAir",
+      "Cool Air",
+      "sounds good"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "breeze is cheaper"
+    ]
+   },
+   "latency": false
+  }
+ ],
+ "failure_conditions": [
+  "Calls Breeze cheaper from the partial.",
+  "Invents Breeze's fee."
+ ]
+}

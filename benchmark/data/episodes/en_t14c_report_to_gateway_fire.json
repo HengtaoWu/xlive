@@ -1,0 +1,316 @@
+{
+ "episode_id": "en_t14c_report_to_gateway_fire",
+ "template_id": "T14_cancel_and_switch",
+ "split": "all",
+ "lang": "en",
+ "domain": "code_debugging",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S5_selective_cancel",
+  "S2_independent_second_task",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Weekly status report is cancelled for an urgent api-gateway triage over the last hour.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-01-12T10:05:00-05:00",
+   "weekday": "Monday",
+   "services": [
+    "api-gateway",
+    "orders-service",
+    "inventory-service"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "api-gateway": [
+     "gateway",
+     "api gateway",
+     "the gateway"
+    ]
+   },
+   "report": {
+    "title": "Platform weekly status",
+    "sections": [
+     "Uptime 99.95%"
+    ],
+    "headline": "Quiet week."
+   },
+   "logs": {
+    "api-gateway": {
+     "last_1h": {
+      "window": "09:05-10:05",
+      "total_errors": 652,
+      "groups": [
+       {
+        "error": "502 Bad Gateway from orders-service",
+        "count": 640,
+        "peak": "09:50-10:05"
+       },
+       {
+        "error": "upstream pods OOMKilled (orders-service)",
+        "count": 12,
+        "peak": "09:48"
+       }
+      ]
+     },
+     "last_24h": {
+      "window": "last 24h",
+      "total_errors": 700,
+      "groups": [
+       {
+        "error": "429 rate limited",
+        "count": 48,
+        "peak": "yesterday 14:00"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "tool_behaviors": {
+   "generate_report": {
+    "duration_s": 70,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 30
+    }
+   },
+   "triage_logs": {
+    "duration_s": 22,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Start the weekly status report for the platform team.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Should a status report lead with the risks or the wins?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Wait, stop the report, we've got a fire. Check the api-gateway errors from the last hour instead.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "hurried"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Of course it breaks on a Monday morning.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "tired"
+  },
+  {
+   "turn_id": "u5",
+   "text": "So what do I tell people?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_gw",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rep",
+   "summary": "Weekly report: started u1, cancelled u3.",
+   "match": {
+    "tool": "generate_report"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": "platform weekly status"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u3",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  },
+  {
+   "goal_id": "g_gw",
+   "summary": "Last hour: 640 502s from orders-service; orders pods OOMKilled at 9:48.",
+   "match": {
+    "tool": "triage_logs"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "api-gateway",
+      "time_window": "last_1h",
+      "min_level": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "api-gateway",
+     "time_window": "last_1h",
+     "min_level": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "502"
+     ],
+     [
+      "orders-service",
+      "orders service"
+     ],
+     [
+      "OOM",
+      "out of memory",
+      "memory"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Lead with risks / asks.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "risk"
+     ],
+     [
+      "first",
+      "lead",
+      "decision"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Cancel the report; start the gateway triage.",
+   "must_not": "Keep the report running.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "gateway"
+     ],
+     [
+      "stop",
+      "cancel"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief; no change.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "monday",
+      "classic"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_answer",
+   "must": "orders-service OOM causing 502s.",
+   "must_not": "Blame rate limiting; invent causes.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "orders"
+     ],
+     [
+      "502",
+      "memory",
+      "OOM"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": [
+     "rate limit",
+     "429"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Keeps drafting the report.",
+  "Scans 24 hours and blames rate limiting."
+ ]
+}

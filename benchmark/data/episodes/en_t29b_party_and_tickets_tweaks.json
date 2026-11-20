@@ -1,0 +1,364 @@
+{
+ "episode_id": "en_t29b_party_and_tickets_tweaks",
+ "template_id": "T29_two_modifies_one_utterance",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "multi_task_update",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Restaurant + concert search; one sentence changes the party size and adds a ticket price cap.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-09-07T12:00:00-05:00",
+   "weekday": "Monday",
+   "user_city": "Chicago",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Chicago": [
+     "chi"
+    ],
+    "West Loop": [
+     "the West Loop",
+     "Fulton Market"
+    ]
+   },
+   "restaurants": [
+    {
+     "name": "Girl & the Goat",
+     "area": "West Loop",
+     "cuisine": "American",
+     "price_pp": 75,
+     "rating": 4.7,
+     "max_party": 4,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-09-12": [
+       "18:00"
+      ]
+     }
+    },
+    {
+     "name": "Au Cheval",
+     "area": "West Loop",
+     "cuisine": "Diner",
+     "price_pp": 35,
+     "rating": 4.6,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-09-12": [
+       "17:30"
+      ]
+     }
+    },
+    {
+     "name": "Avec",
+     "area": "West Loop",
+     "cuisine": "Mediterranean",
+     "price_pp": 60,
+     "rating": 4.6,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-09-12": [
+       "18:15"
+      ]
+     }
+    }
+   ],
+   "events": [
+    {
+     "name": "Hozier",
+     "city": "Chicago",
+     "date": "2026-09-12",
+     "category": "concert",
+     "venue": "United Center",
+     "time": "20:00",
+     "price": 140
+    },
+    {
+     "name": "Jazz in the Park",
+     "city": "Chicago",
+     "date": "2026-09-12",
+     "category": "concert",
+     "venue": "Millennium Park",
+     "time": "19:00",
+     "price": 0
+    },
+    {
+     "name": "Chicago Symphony: Beethoven 7",
+     "city": "Chicago",
+     "date": "2026-09-12",
+     "category": "concert",
+     "venue": "Symphony Center",
+     "time": "19:30",
+     "price": 65
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_restaurants": {
+    "duration_s": 56,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   },
+   "search_events": {
+    "duration_s": 62,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find dinner in the West Loop for four this Saturday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And what concerts are on that night?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Actually it'll be six of us for dinner, and keep concert tickets under a hundred.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Is parking in the West Loop a nightmare?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_r",
+   "summary": "For 6: Avec, Au Cheval. Girl & the Goat max 4 (trap).",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "West Loop",
+      "party_size": 4,
+      "date": "2026-09-12",
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "cuisine": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "party_size"
+     ],
+     "constraints": {
+      "area": "West Loop",
+      "party_size": 6,
+      "date": "2026-09-12",
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "cuisine": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "West Loop",
+     "party_size": 6,
+     "date": "2026-09-12",
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "cuisine": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Avec"
+     ],
+     [
+      "Au Cheval"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_ev",
+   "summary": "≤$100: Jazz free, CSO $65. Hozier $140 (trap).",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Chicago",
+      "date": "2026-09-12",
+      "category": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "max_price"
+     ],
+     "constraints": {
+      "city": "Chicago",
+      "date": "2026-09-12",
+      "category": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "max_price": 100
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Chicago",
+     "date": "2026-09-12",
+     "max_price": 100,
+     "category": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Jazz in the Park",
+      "Millennium"
+     ],
+     [
+      "Symphony",
+      "Beethoven"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Both modifies to the right tasks.",
+   "must_not": "Apply only one.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "six",
+      "6"
+     ],
+     [
+      "100",
+      "hundred"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Valet/garage/L.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "valet",
+      "garage",
+      "Green Line",
+      "train"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Keeps Girl & the Goat for 6.",
+  "Suggests Hozier at 140."
+ ]
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "protocol": "xlive-task-control-v1",
+  "chat_format": "qwen-tool-chatml-no-think-v1",
+  "model_is_non_thinking": true,
+  "action_gate_routing": true,
+  "action_embedding_conditioning": true,
+  "training_cutoff_length": 4096,
+  "artifacts": [
+    "chat_template.jinja",
+    "system_prompt.txt",
+    "tools.json"
+  ]
+}

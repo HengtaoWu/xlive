@@ -1,0 +1,329 @@
+{
+ "episode_id": "en_t14b_vegas_trip_to_local_fun",
+ "template_id": "T14_cancel_and_switch",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel+events",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S5_selective_cancel",
+  "S2_independent_second_task",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Phoenix→Vegas flight search is dropped; find something fun in Phoenix on Saturday instead.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-10-26T18:00:00-07:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Phoenix": [
+     "PHX"
+    ],
+    "Las Vegas": [
+     "Vegas",
+     "LAS"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "WN 3010",
+     "airline": "Southwest",
+     "origin": "Phoenix",
+     "destination": "Las Vegas",
+     "date": "2026-10-31",
+     "depart": "09:00",
+     "price": 89,
+     "stops": 0
+    }
+   ],
+   "events": [
+    {
+     "name": "Haunted Desert Hike",
+     "city": "Phoenix",
+     "date": "2026-10-31",
+     "category": "outdoors",
+     "venue": "South Mountain",
+     "time": "18:00",
+     "price": 20
+    },
+    {
+     "name": "Desert Botanical Garden Lights",
+     "city": "Phoenix",
+     "date": "2026-10-31",
+     "category": "exhibition",
+     "venue": "Desert Botanical Garden",
+     "time": "17:30",
+     "price": 30
+    },
+    {
+     "name": "Suns vs. Lakers",
+     "city": "Phoenix",
+     "date": "2026-10-31",
+     "category": "sports",
+     "venue": "Footprint Center",
+     "time": "19:00",
+     "price": 65
+    },
+    {
+     "name": "Vegas Halloween Bash",
+     "city": "Las Vegas",
+     "date": "2026-10-31",
+     "category": "party",
+     "venue": "The Strip",
+     "time": "21:00",
+     "price": 40
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 55,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "search_events": {
+    "duration_s": 24,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Look up flights from Phoenix to Las Vegas for Saturday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Is it cheaper to just drive, roughly?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Ugh, never mind the trip, my buddy bailed. Just find something fun to do in Phoenix on Saturday.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Honestly, it's probably better for my wallet anyway.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u5",
+   "text": "Which one's the cheapest?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_ev",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "Flights to Vegas: started u1, cancelled u3.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Phoenix",
+      "destination": "Las Vegas",
+      "date": "2026-10-31"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u3",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  },
+  {
+   "goal_id": "g_ev",
+   "summary": "Phoenix Sat: Garden Lights 5:30 $30, Haunted Hike 6pm $20 (cheapest), Suns 7pm $65. Vegas party is the trap.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Phoenix",
+      "date": "2026-10-31",
+      "category": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "max_price": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Phoenix",
+     "date": "2026-10-31",
+     "category": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "max_price": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Haunted",
+      "hike"
+     ],
+     [
+      "Botanical",
+      "Garden"
+     ],
+     [
+      "Suns"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Drive ~4.5–5 h; often cheaper.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "drive",
+      "hours"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Cancel flights; start a Phoenix events search.",
+   "must_not": "Keep the flight search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Phoenix"
+     ],
+     [
+      "cancel",
+      "stop",
+      "dropped"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "wallet",
+      "silver lining"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "Haunted hike $20.",
+   "must_not": "Pick the Suns game or a Vegas event.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Haunted",
+      "hike"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "suns is the cheapest",
+     "vegas"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Keeps searching flights.",
+  "Suggests the Vegas party."
+ ]
+}

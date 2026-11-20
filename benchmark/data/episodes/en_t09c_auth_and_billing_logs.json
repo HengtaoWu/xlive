@@ -1,0 +1,322 @@
+{
+ "episode_id": "en_t09c_auth_and_billing_logs",
+ "template_id": "T09_independent_second_task_out_of_order",
+ "split": "all",
+ "lang": "en",
+ "domain": "code_debugging",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Triage auth-service logs; then also billing-service; billing returns first; don't swap findings.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-02-09T08:45:00+00:00",
+   "weekday": "Monday",
+   "services": [
+    "auth-service",
+    "billing-service",
+    "web-frontend"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "auth-service": [
+     "auth",
+     "login service",
+     "auth service"
+    ],
+    "billing-service": [
+     "billing",
+     "billing service"
+    ]
+   },
+   "logs": {
+    "auth-service": {
+     "last_night": {
+      "window": "last night",
+      "total_errors": 188,
+      "groups": [
+       {
+        "error": "JWT signature validation failed (key rotation)",
+        "count": 171,
+        "peak": "00:00-00:20"
+       },
+       {
+        "error": "LDAP timeout",
+        "count": 17,
+        "peak": "02:10"
+       }
+      ]
+     }
+    },
+    "billing-service": {
+     "last_night": {
+      "window": "last night",
+      "total_errors": 29,
+      "groups": [
+       {
+        "error": "Duplicate invoice ID constraint violation",
+        "count": 29,
+        "peak": "01:00-01:05"
+       }
+      ]
+     }
+    },
+    "web-frontend": {
+     "last_night": {
+      "window": "last night",
+      "total_errors": 0,
+      "groups": []
+     }
+    }
+   }
+  },
+  "tool_behaviors": {
+   "triage_logs": {
+    "duration_s": 60,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    },
+    "overrides": [
+     {
+      "when": {
+       "service": "billing-service"
+      },
+      "set": {
+       "duration_s": 13
+      }
+     }
+    ]
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you check the auth service logs from last night? People couldn't log in around midnight.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Quick one: what's the difference between a 401 and a 403 again?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh, and check billing too, same time window.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "The on-call guy said his phone wouldn't stop buzzing. Rough night.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u5",
+   "text": "So, what's going on with auth?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_auth",
+   "summary": "auth: 171 JWT signature failures right after midnight key rotation.",
+   "match": {
+    "tool": "triage_logs",
+    "args": {
+     "service": "auth-service"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "auth-service",
+      "time_window": "last_night",
+      "min_level": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "auth-service",
+     "time_window": "last_night",
+     "min_level": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "JWT",
+      "signature",
+      "key rotation"
+     ],
+     [
+      "171"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_billing",
+   "summary": "billing: 29 duplicate invoice ID violations at 1am. Returns first.",
+   "match": {
+    "tool": "triage_logs",
+    "args": {
+     "service": "billing-service"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "billing-service",
+      "time_window": "last_night",
+      "min_level": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "billing-service",
+     "time_window": "last_night",
+     "min_level": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "duplicate invoice",
+      "duplicate"
+     ],
+     [
+      "29"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "401 unauthenticated vs 403 forbidden.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "authenticat"
+     ],
+     [
+      "allowed",
+      "permission",
+      "forbidden"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Sympathetic and brief; no task change.",
+   "must_not": "Change or cancel scans.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "rough",
+      "ouch",
+      "sleep"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "status_answer",
+   "must": "Auth still running; don't attribute billing findings to auth.",
+   "must_not": "Say auth's issue is duplicate invoices.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "still"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "auth is duplicate",
+     "auth has duplicate invoice",
+     "auth's problem is the invoice"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Swaps the findings between services.",
+  "Never reports auth."
+ ]
+}

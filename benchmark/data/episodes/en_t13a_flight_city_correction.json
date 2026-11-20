@@ -1,0 +1,264 @@
+{
+ "episode_id": "en_t13a_flight_city_correction",
+ "template_id": "T13_bargein_correction",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "barge_in_correction",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Flights Chicago→Austin next Tuesday; the user cuts into the acknowledgement to correct Boston→Austin.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-02T10:00:00-06:00",
+   "weekday": "Monday",
+   "user_city": "Chicago",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Chicago": [
+     "ORD",
+     "MDW",
+     "O'Hare",
+     "Midway"
+    ],
+    "Austin": [
+     "AUS"
+    ],
+    "Boston": [
+     "BOS",
+     "Logan"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "B6 712",
+     "airline": "JetBlue",
+     "origin": "Chicago",
+     "destination": "Boston",
+     "date": "2026-03-10",
+     "depart": "08:10",
+     "price": 139,
+     "stops": 0
+    },
+    {
+     "flight_no": "NK 455",
+     "airline": "Spirit",
+     "origin": "Chicago",
+     "destination": "Boston",
+     "date": "2026-03-10",
+     "depart": "12:30",
+     "price": 99,
+     "stops": 0
+    },
+    {
+     "flight_no": "AA 1123",
+     "airline": "American",
+     "origin": "Chicago",
+     "destination": "Austin",
+     "date": "2026-03-10",
+     "depart": "07:30",
+     "price": 168,
+     "stops": 0
+    },
+    {
+     "flight_no": "WN 220",
+     "airline": "Southwest",
+     "origin": "Chicago",
+     "destination": "Austin",
+     "date": "2026-03-10",
+     "depart": "11:00",
+     "price": 152,
+     "stops": 1
+    },
+    {
+     "flight_no": "UA 989",
+     "airline": "United",
+     "origin": "Chicago",
+     "destination": "Austin",
+     "date": "2026-03-10",
+     "depart": "15:40",
+     "price": 199,
+     "stops": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find flights from Chicago to Boston next Tuesday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "No, sorry, Austin. Not Boston.",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u1",
+    "delay": 2.5
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is Austin's airport a nightmare during South by Southwest?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "I'm going for a friend's wedding. First time being a groomsman.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "Chicago→Austin Tue 3/10: Southwest $152 (1 stop), American $168 nonstop, United $199. Boston results (Spirit $99) are the uncorrected trap.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Chicago",
+      "destination": "Boston",
+      "date": "2026-03-10"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u2",
+     "deadline_s": 15,
+     "fields": [
+      "destination"
+     ],
+     "constraints": {
+      "origin": "Chicago",
+      "destination": "Austin",
+      "date": "2026-03-10"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Chicago",
+     "destination": "Austin",
+     "date": "2026-03-10"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Southwest",
+      "WN 220"
+     ],
+     [
+      "American",
+      "AA 1123"
+     ],
+     [
+      "152"
+     ],
+     [
+      "168"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "constraint_update",
+   "must": "Switch destination to Austin (backend actually updated), same date.",
+   "must_not": "Keep searching Boston.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Austin"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "SXSW makes AUS busy; mid-March timing.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "busy",
+      "crowded",
+      "extra time",
+      "festival"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief, warm; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "groomsman",
+      "congrat",
+      "rings",
+      "wedding"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Keeps searching Boston.",
+  "Reports Spirit $99 to Boston."
+ ]
+}

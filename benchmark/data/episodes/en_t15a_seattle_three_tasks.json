@@ -1,0 +1,351 @@
+{
+ "episode_id": "en_t15a_seattle_three_tasks",
+ "template_id": "T15_three_tasks_reference",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S5_status_query",
+  "S5_selective_cancel",
+  "ordinal_reference",
+  "proactive_delivery"
+ ],
+ "user_goal": "Three parallel Seattle tasks (flight, hotel, events); user asks about 'the second one' (hotel), then drops the events search.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-08-03T09:00:00-07:00",
+   "weekday": "Monday",
+   "user_city": "San Francisco",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "San Francisco": [
+     "SFO",
+     "SF"
+    ],
+    "Seattle": [
+     "SEA"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "AS 1953",
+     "airline": "Alaska",
+     "origin": "San Francisco",
+     "destination": "Seattle",
+     "date": "2026-08-14",
+     "depart": "08:00",
+     "price": 129,
+     "stops": 0
+    },
+    {
+     "flight_no": "UA 412",
+     "airline": "United",
+     "origin": "San Francisco",
+     "destination": "Seattle",
+     "date": "2026-08-14",
+     "depart": "10:15",
+     "price": 158,
+     "stops": 0
+    }
+   ],
+   "hotels": [
+    {
+     "name": "Pike Place Inn",
+     "city": "Seattle",
+     "area": "Downtown",
+     "price_per_night": 245,
+     "rating": 4.6,
+     "walk_min": 4
+    },
+    {
+     "name": "Belltown Lofts Hotel",
+     "city": "Seattle",
+     "area": "Belltown",
+     "price_per_night": 210,
+     "rating": 4.4,
+     "walk_min": 7
+    }
+   ],
+   "events": [
+    {
+     "name": "Mariners vs. Astros",
+     "city": "Seattle",
+     "date": "2026-08-15",
+     "category": "sports",
+     "venue": "T-Mobile Park",
+     "time": "19:10",
+     "price": 35
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 48,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   },
+   "search_hotels": {
+    "duration_s": 62,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "search_events": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "I'm going to Seattle on the fourteenth. Find me a flight from SF that morning.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Also a hotel for two nights.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "And see what's going on in town Saturday night.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "How's the second one coming along?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Actually, drop the Saturday stuff, we'll figure that out when we're there. Keep the other two going.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u6",
+   "text": "I haven't been back there since college.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "Cheapest: Alaska 8am $129.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "San Francisco",
+      "destination": "Seattle",
+      "date": "2026-08-14"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "San Francisco",
+     "destination": "Seattle",
+     "date": "2026-08-14"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Alaska",
+      "AS 1953"
+     ],
+     [
+      "129"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_ho",
+   "summary": "Pike Place Inn 4.6 $245; Belltown 4.4 $210.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Seattle",
+      "check_in": "2026-08-14",
+      "check_out": "2026-08-16",
+      "area": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Seattle",
+     "check_in": "2026-08-14",
+     "check_out": "2026-08-16",
+     "area": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Pike Place"
+     ],
+     [
+      "Belltown"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_ev",
+   "summary": "Events Saturday: started u3, cancelled u5; never reported.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Seattle",
+      "date": "2026-08-15"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u5",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "Resolve 'second one' = hotel; truthful status.",
+   "must_not": "Report the flight or events; invent results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "hotel"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u5",
+   "type": "selective_cancel",
+   "must": "Cancel only events; confirm flights and hotel continue.",
+   "must_not": "Cancel everything.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "event",
+      "Saturday"
+     ],
+     [
+      "flight",
+      "hotel"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u6",
+   "type": "chitchat_no_action",
+   "must": "Brief; no change.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "homecoming",
+      "college",
+      "back",
+      "nice"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Answers 'second one' with the flight or events.",
+  "Cancels all three.",
+  "Reports the Mariners game after cancellation."
+ ]
+}

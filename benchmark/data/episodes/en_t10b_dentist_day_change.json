@@ -1,0 +1,268 @@
+{
+ "episode_id": "en_t10b_dentist_day_change",
+ "template_id": "T10_change_of_mind_status",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S5_status_query",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Find a 45-minute slot with Sam and Jo on Thursday morning; changed to Friday morning; status asked.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-12-14T09:00:00+00:00",
+   "weekday": "Monday",
+   "colleagues": [
+    "Sam",
+    "Jo"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "me": [
+     "I",
+     "myself"
+    ],
+    "Sam": [
+     "Samuel"
+    ],
+    "Jo": [
+     "Joanne"
+    ]
+   },
+   "calendars": {
+    "2026-12-17": {
+     "me": [
+      [
+       "09:00",
+       "10:00"
+      ]
+     ],
+     "Sam": [
+      [
+       "10:45",
+       "12:00"
+      ]
+     ],
+     "Jo": []
+    },
+    "2026-12-18": {
+     "me": [
+      [
+       "09:00",
+       "09:30"
+      ],
+      [
+       "10:30",
+       "12:00"
+      ]
+     ],
+     "Sam": [
+      [
+       "09:30",
+       "09:45"
+      ]
+     ],
+     "Jo": [
+      [
+       "11:00",
+       "11:30"
+      ]
+     ]
+    }
+   }
+  },
+  "tool_behaviors": {
+   "find_meeting_slots": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 26
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find a forty-five minute slot on Thursday morning with Sam and Jo.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "December is always insane. Everyone wants to meet before the holidays.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh wait, I've got a dentist appointment Thursday. Make it Friday morning instead, same length.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Found anything yet?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_slot",
+   "summary": "Friday morning only 09:45-10:30 works. Thursday's 10:00-10:45 is the trap.",
+   "match": {
+    "tool": "find_meeting_slots"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "attendees": {
+       "$contains": [
+        "me",
+        "Sam",
+        "Jo"
+       ]
+      },
+      "date": "2026-12-17",
+      "part_of_day": "morning",
+      "duration_min": 45
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "date"
+     ],
+     "constraints": {
+      "attendees": {
+       "$contains": [
+        "me",
+        "Sam",
+        "Jo"
+       ]
+      },
+      "date": "2026-12-18",
+      "part_of_day": "morning",
+      "duration_min": 45
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "attendees": {
+      "$contains": [
+       "me",
+       "Sam",
+       "Jo"
+      ]
+     },
+     "date": "2026-12-18",
+     "part_of_day": "morning",
+     "duration_min": 45
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "9:45",
+      "09:45",
+      "nine forty-five",
+      "quarter to ten"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "chitchat_no_action",
+   "must": "Brief empathy; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "holiday",
+      "squeeze",
+      "december",
+      "busy"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Move to Friday, keep length and people.",
+   "must_not": "Keep searching Thursday.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Friday"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "Grounded: Friday search still running (or the real Friday slot if done).",
+   "must_not": "Give Thursday's 10:00 slot.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "still",
+      "checking",
+      "9:45"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "10:00",
+     "ten o'clock thursday"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Proposes Thursday 10:00.",
+  "Drops Sam or Jo when updating."
+ ]
+}

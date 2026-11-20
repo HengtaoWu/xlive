@@ -1,0 +1,302 @@
+{
+ "episode_id": "en_t11c_vegan_dinner_party",
+ "template_id": "T11_amended_result_arrives_while_user_speaks",
+ "split": "all",
+ "lang": "en",
+ "domain": "cooking",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S7_result_arrives_while_user_speaks",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Chickpea + spinach recipes under 45 minutes; made vegan mid-run; amended result arrives during a question.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-02T17:20:00+00:00",
+   "weekday": "Monday"
+  },
+  "materials": {
+   "recipes": [
+    {
+     "name": "Chickpea Spinach Curry with Yogurt",
+     "ingredients": [
+      "chickpeas",
+      "spinach",
+      "yogurt",
+      "tomatoes"
+     ],
+     "diet": [
+      "vegetarian",
+      "gluten_free"
+     ],
+     "time_min": 25
+    },
+    {
+     "name": "Chana Saag (coconut)",
+     "ingredients": [
+      "chickpeas",
+      "spinach",
+      "coconut milk",
+      "onion"
+     ],
+     "diet": [
+      "vegan",
+      "vegetarian",
+      "gluten_free"
+     ],
+     "time_min": 30
+    },
+    {
+     "name": "Chickpea Spinach Stew",
+     "ingredients": [
+      "chickpeas",
+      "spinach",
+      "tomatoes",
+      "smoked paprika"
+     ],
+     "diet": [
+      "vegan",
+      "vegetarian"
+     ],
+     "time_min": 40
+    },
+    {
+     "name": "Chickpea Spinach Pie",
+     "ingredients": [
+      "chickpeas",
+      "spinach",
+      "feta",
+      "pastry"
+     ],
+     "diet": [
+      "vegetarian"
+     ],
+     "time_min": 70
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "find_recipes": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 3,
+     "release_not_before": {
+      "turn": "u4",
+      "offset": 2.0,
+      "max_hold_s": 40
+     }
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me something to cook with chickpeas and spinach, under forty-five minutes.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "I'm hosting my book club tonight. We're reading something depressing, so at least the food should be good.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh, two of them are vegan, so make it vegan.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Can I make it ahead and reheat it, or does spinach go weird?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Okay, I'll do the first one.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_rec",
+    "event": "task_completed",
+    "gap": 1.2,
+    "max_wait": 20,
+    "fallback_s": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rec",
+   "summary": "Vegan ≤45: Chana Saag 30, Stew 40. Unamended first is the yogurt curry (not vegan).",
+   "match": {
+    "tool": "find_recipes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "ingredients": {
+       "$contains": [
+        "chickpeas",
+        "spinach"
+       ]
+      },
+      "max_time_min": 45
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "diet"
+     ],
+     "constraints": {
+      "ingredients": {
+       "$contains": [
+        "chickpeas",
+        "spinach"
+       ]
+      },
+      "max_time_min": 45,
+      "diet": "vegan"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "ingredients": {
+      "$contains": [
+       "chickpeas",
+       "spinach"
+      ]
+     },
+     "max_time_min": 45,
+     "diet": "vegan"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Chana Saag"
+     ],
+     [
+      "Stew"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "chitchat_no_action",
+   "must": "Light reply; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "food",
+      "book",
+      "ha"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Add vegan, keep ingredients and time.",
+   "must_not": "Only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "vegan"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Give useful make-ahead and reheating advice. Convey available results at an appropriate conversational moment without leaving the question unanswered; either order is acceptable.",
+   "must_not": "Skip the question.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "ahead",
+      "reheat"
+     ],
+     [
+      "spinach",
+      "stir"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "Acknowledge the first vegan recipe actually recommended in heard speech. Follow spoken order, not backend order; clarify if none was heard or the reference is ambiguous.",
+   "must_not": "Pick the yogurt curry.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Chana",
+      "Saag",
+      "Stew",
+      "which recipe",
+      "which one"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "yogurt"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Suggests the yogurt curry.",
+  "Reads recipes over the make-ahead question."
+ ]
+}

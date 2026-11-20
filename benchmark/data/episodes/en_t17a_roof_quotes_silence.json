@@ -1,0 +1,255 @@
+{
+ "episode_id": "en_t17a_roof_quotes_silence",
+ "template_id": "T17_silent_arrival_deliver_on_resume",
+ "split": "all",
+ "lang": "en",
+ "domain": "home_services",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "silence_request_not_cancel",
+  "S7_result_arrives_during_silence",
+  "resume_delivery",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "Roofing quotes incl. disposal; the user asks for quiet; the result lands during the pause and must be held until the user is back.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-05-11T17:30:00-05:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Summit": [
+     "Summit Roofing"
+    ],
+    "Peak": [
+     "Peak Roofing",
+     "Peak Exteriors"
+    ]
+   },
+   "vendors": [
+    {
+     "name": "Summit",
+     "base_price": 10200,
+     "install_fee": 800,
+     "install_fee_ready_s": 0
+    },
+    {
+     "name": "Peak",
+     "base_price": 9900,
+     "install_fee": 1400,
+     "install_fee_ready_s": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "compare_quotes": {
+    "duration_s": 34,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Compare the roof quotes from Summit and Peak, with the tear-off and disposal fees included.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "How long should a new asphalt roof last?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Hang on, the dog's going crazy at the mail carrier. Give me a minute.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "hurried"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay, sorry, I'm back.",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u3",
+    "delay": 24
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Even though Peak's base price was lower?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_q",
+   "summary": "Summit 10,200+800=11,000 < Peak 9,900+1,400=11,300. Peak's base is lower (trap).",
+   "match": {
+    "tool": "compare_quotes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "vendors": [
+       "Summit",
+       "Peak"
+      ],
+      "include_install_fee": true,
+      "budget": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "vendors": [
+      "Summit",
+      "Peak"
+     ],
+     "include_install_fee": true,
+     "budget": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Summit"
+     ],
+     [
+      "11,000",
+      "11000",
+      "eleven thousand"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4",
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "20–30 years.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "twenty",
+      "20",
+      "thirty",
+      "30"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "silence_request",
+   "must": "Very short ack; stay quiet; don't cancel; don't deliver while the user is away.",
+   "must_not": "Keep talking; read results now.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "sure",
+      "okay",
+      "no problem"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "resume",
+   "must": "Welcome back + deliver the result that landed during the pause.",
+   "must_not": "Say it's still running; pick Peak.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Summit"
+     ],
+     [
+      "11,000",
+      "11000",
+      "eleven thousand"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_answer",
+   "must": "Explain fees flip the ranking.",
+   "must_not": "Switch to Peak.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "disposal",
+      "fee"
+     ],
+     [
+      "Summit"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": [
+     "peak is cheaper"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Reads the result while the user is away.",
+  "Never delivers after the user returns.",
+  "Picks Peak."
+ ]
+}

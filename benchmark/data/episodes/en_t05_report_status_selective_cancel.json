@@ -1,0 +1,326 @@
+{
+ "episode_id": "en_t05_report_status_selective_cancel",
+ "template_id": "T05_status_reference_selective_cancel",
+ "split": "all",
+ "lang": "en",
+ "domain": "office_docs",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S5_status_query",
+  "S5_selective_cancel",
+  "silence_request_not_cancel",
+  "proactive_delivery"
+ ],
+ "user_goal": "Draft a Q3 support review report; outside research started in parallel is later dropped; report continues and is delivered.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-11-02T10:15:00-08:00",
+   "weekday": "Monday",
+   "data_sources": [
+    "support ticket database",
+    "web research"
+   ]
+  },
+  "materials": {
+   "report": {
+    "title": "Q3 2026 Customer Support Review",
+    "sections": [
+     "Ticket volume: 18,420 tickets, up 12% vs Q2",
+     "Response times: median first response 2.9h (Q2: 4.2h)",
+     "Top complaint themes: billing disputes 31%, login issues 22%, slow exports 14%"
+    ],
+    "headline": "Median first response fell from 4.2h to 2.9h; billing disputes were the top complaint theme (31%)."
+   },
+   "sources": [
+    {
+     "title": "How SaaS teams measure support quality: CSAT, FRT, FCR",
+     "publisher": "SupportOps Journal"
+    },
+    {
+     "title": "Benchmarking first contact resolution in B2B software",
+     "publisher": "CX Benchmarks 2026"
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "generate_report": {
+    "duration_s": 75,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 40
+    },
+    "stages": [
+     {
+      "at_frac": 0,
+      "label": "collecting ticket data"
+     },
+     {
+      "at_frac": 0.3,
+      "label": "drafting section 1 of 3: ticket volume"
+     },
+     {
+      "at_frac": 0.55,
+      "label": "drafting section 2 of 3: response times"
+     },
+     {
+      "at_frac": 0.8,
+      "label": "drafting section 3 of 3: complaint themes"
+     }
+    ]
+   },
+   "research_sources": {
+    "duration_s": 120,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 60
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Start drafting the Q3 customer support review. I want sections on ticket volume, response times, and the top complaint themes.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And can you pull together some outside material on how other SaaS companies measure support quality?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1,
+    "max_wait": 8
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "How far along is the report?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 4,
+    "max_wait": 12
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay. You can drop the outside research, I won't need it after all. Keep going on the report though.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.5,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Hang on, stop talking for a sec, I need to take this call.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1,
+    "max_wait": 8
+   },
+   "tts_style": "hurried"
+  },
+  {
+   "turn_id": "u6",
+   "text": "Okay, I'm back. Sorry about that.",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u5",
+    "delay": 18
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_report",
+   "summary": "Report task keeps running through the cancel of research and the 'stop talking' request; delivered after completion (headline: first response 4.2h→2.9h; billing disputes 31% top theme).",
+   "match": {
+    "tool": "generate_report"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": {
+       "$any": true
+      },
+      "period": {
+       "$optional": {
+        "$oneof": [
+         "Q3",
+         "2026-Q3",
+         "Q3 2026",
+         "2026 Q3"
+        ]
+       }
+      },
+      "sections": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "topic": {
+      "$any": true
+     },
+     "period": {
+      "$optional": {
+       "$oneof": [
+        "Q3",
+        "2026-Q3",
+        "Q3 2026",
+        "2026 Q3"
+       ]
+      }
+     },
+     "sections": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "2.9"
+     ],
+     [
+      "billing"
+     ],
+     [
+      "18,420",
+      "18420"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_research",
+   "summary": "Outside research task: started after u2, cancelled after u4; its results must never be reported.",
+   "match": {
+    "tool": "research_sources"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": "how SaaS companies measure customer support quality",
+      "max_items": 5
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u4",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "status_answer",
+   "must": "State the report's real progress consistent with the TRUE BACKEND STATE (e.g. collecting data / drafting section N of 3), without claiming it is done.",
+   "must_not": "Invent a percentage or stage that contradicts the backend; report on the research task instead.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "collecting",
+      "drafting",
+      "section",
+      "ticket data"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "selective_cancel",
+   "must": "Confirm the outside research is stopped and the report continues.",
+   "must_not": "Cancel the report too; ask a needless confirmation question.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "research",
+      "outside"
+     ],
+     [
+      "report"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "silence_request",
+   "must": "Stop talking, or give at most a very short acknowledgement. Background work keeps running.",
+   "must_not": "Cancel tasks; keep talking at length.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "sure",
+      "okay",
+      "of course"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u6",
+   "type": "resume",
+   "must": "Welcome the user back briefly and give an up-to-date status or the finished report summary, consistent with the backend.",
+   "must_not": "Say the research is still running; re-announce the cancellation at length.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "welcome back",
+      "no problem",
+      "report"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Cancels both tasks after u4, or cancels anything after 'stop talking'.",
+  "Status answer at u3 not grounded in the backend.",
+  "Mentions research results after cancellation.",
+  "Keeps talking at length after u5."
+ ]
+}

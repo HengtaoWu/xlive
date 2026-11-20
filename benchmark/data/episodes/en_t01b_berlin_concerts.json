@@ -1,0 +1,311 @@
+{
+ "episode_id": "en_t01b_berlin_concerts",
+ "template_id": "T01_related_qa_while_waiting",
+ "split": "all",
+ "lang": "en",
+ "domain": "events",
+ "difficulty": "easy",
+ "scenario_tags": [
+  "S1_related_qa_during_wait",
+  "S7_result_arrives_while_user_speaks",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Find concerts in Berlin this Saturday; meanwhile ask about late-night transit and paying at venues.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-01T18:10:00+02:00",
+   "weekday": "Monday",
+   "user_city": "Berlin (visiting)",
+   "currency": "EUR"
+  },
+  "materials": {
+   "sources": [
+    {
+     "title": "Berlin U-Bahn weekend night service",
+     "publisher": "BVG",
+     "url": "https://www.bvg.de/en/tourists/faq-tourists",
+     "summary": "Berlin's U-Bahn provides overnight service at weekends. On weekdays, N-prefixed night buses replace the overnight U-Bahn service. Use BVG's journey planner for an individual route and current disruptions.",
+     "keywords": "Berlin Kreuzberg trains subway metro transit weekend night overnight transport",
+     "scope": "General service guidance, not a verified timetable for a particular journey."
+    },
+    {
+     "title": "Night buses and public transport at night in Berlin",
+     "publisher": "Berlin.de",
+     "url": "https://www.berlin.de/en/public-transportation/1859225-2913840-night-buses-public-transport-at-night.en.html",
+     "source_updated": "2025-05-19",
+     "summary": "The published general guide describes overnight S-Bahn and U-Bahn service on Friday-to-Saturday and Saturday-to-Sunday nights and before public holidays. It gives approximate night intervals of 15 minutes for U-Bahn and 30 minutes for S-Bahn. Night buses and trams also operate. Individual lines, routes and disruptions require a journey-planner check.",
+     "keywords": "Berlin Kreuzberg trains rail transit weekend Saturday Sunday late night frequencies",
+     "scope": "General guidance; no confirmation of disruptions or exact departures on June 6-7, 2026."
+    },
+    {
+     "title": "Money, cash and card payments in Berlin",
+     "publisher": "visitBerlin",
+     "url": "https://www.visitberlin.de/en/money-currency",
+     "summary": "Berlin uses the euro. Card payments are often accepted, but smaller shops and cafes may require cash. Carry some cash and check the individual venue's payment policy; this source does not establish the policy of any named concert venue.",
+     "keywords": "Berlin cash card payment venues clubs money euro",
+     "scope": "General payment advice, not a guarantee about a particular venue."
+    }
+   ],
+   "aliases": {
+    "Berlin": [
+     "berlin"
+    ]
+   },
+   "events": [
+    {
+     "name": "Techno Open Air",
+     "city": "Berlin",
+     "date": "2026-06-06",
+     "category": "concert",
+     "venue": "Treptower Park",
+     "time": "15:00",
+     "price": 30
+    },
+    {
+     "name": "Brahms 4 at the Philharmonie",
+     "city": "Berlin",
+     "date": "2026-06-06",
+     "category": "concert",
+     "venue": "Philharmonie",
+     "time": "19:30",
+     "price": 45
+    },
+    {
+     "name": "Kraftwerk Tribute Night",
+     "city": "Berlin",
+     "date": "2026-06-06",
+     "category": "concert",
+     "venue": "Columbiahalle",
+     "time": "20:00",
+     "price": 38
+    },
+    {
+     "name": "Late Jazz at A-Trane",
+     "city": "Berlin",
+     "date": "2026-06-06",
+     "category": "concert",
+     "venue": "A-Trane",
+     "time": "21:00",
+     "price": 22
+    },
+    {
+     "name": "Sunday Brunch Swing",
+     "city": "Berlin",
+     "date": "2026-06-07",
+     "category": "concert",
+     "venue": "Clärchens Ballhaus",
+     "time": "11:00",
+     "price": 15
+    },
+    {
+     "name": "Elbphilharmonie Gala",
+     "city": "Hamburg",
+     "date": "2026-06-06",
+     "category": "concert",
+     "venue": "Elbphilharmonie",
+     "time": "20:00",
+     "price": 60
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "research_sources": {
+    "duration_s": 3,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 3
+    }
+   },
+   "search_events": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    },
+    "release_not_before": {
+     "turn": "u4",
+     "offset": 1.8,
+     "max_hold_s": 40
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you see what concerts are on in Berlin this Saturday?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "I'm staying in Kreuzberg. Do the trains still run late at night on weekends?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "My friend swears Berlin techno is the best in the world, ha.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Also, do venues there usually take cards, or should I bring cash?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Cool, I'll pick one after dinner.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_events",
+   "summary": "Berlin concerts Sat 2026-06-06 (4 results). Sunday brunch and Hamburg gala are traps for wrong date / city.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Berlin",
+      "date": "2026-06-06",
+      "category": {
+       "$optional": {
+        "$oneof": [
+         "concert",
+         "concerts",
+         "music"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Berlin",
+     "date": "2026-06-06",
+     "category": {
+      "$optional": {
+       "$oneof": [
+        "concert",
+        "concerts",
+        "music"
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Techno Open Air"
+     ],
+     [
+      "Brahms",
+      "Philharmonie"
+     ],
+     [
+      "Kraftwerk"
+     ],
+     [
+      "A-Trane"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Explain weekend night service (U-Bahn runs all night on weekends; night buses otherwise).",
+   "must_not": "Only say the search is running.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "all night",
+      "night bus",
+      "U-Bahn",
+      "weekend"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "chitchat_no_action",
+   "must": "Brief, friendly reaction; no task change.",
+   "must_not": "Start a club search or change the concert search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "club",
+      "techno",
+      "legendary",
+      "point",
+      "famous"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Answer about card vs cash (smaller venues often cash-only). The result arrives while the user asks: answer first, then deliver.",
+   "must_not": "Read the results instead of answering.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "cash"
+     ],
+     [
+      "card"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Answers the transit or cash question with 'still searching'.",
+  "Reports Sunday or Hamburg events.",
+  "Reads results over the user's question."
+ ]
+}

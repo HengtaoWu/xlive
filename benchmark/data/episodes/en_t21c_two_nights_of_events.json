@@ -1,0 +1,280 @@
+{
+ "episode_id": "en_t21c_two_nights_of_events",
+ "template_id": "T21_same_tool_two_tasks",
+ "split": "all",
+ "lang": "en",
+ "domain": "events",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S4_modify_keep_unchanged",
+  "same_tool_disambiguation",
+  "proactive_delivery"
+ ],
+ "user_goal": "Events in Austin Friday and Saturday as two searches; only Saturday is narrowed to live music.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-16T12:00:00-05:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Austin": [
+     "ATX"
+    ]
+   },
+   "events": [
+    {
+     "name": "Comedy at the Velveeta Room",
+     "city": "Austin",
+     "date": "2026-03-20",
+     "category": "comedy",
+     "venue": "Velveeta Room",
+     "time": "20:00",
+     "price": 25
+    },
+    {
+     "name": "Austin FC vs. Dallas",
+     "city": "Austin",
+     "date": "2026-03-20",
+     "category": "sports",
+     "venue": "Q2 Stadium",
+     "time": "19:30",
+     "price": 45
+    },
+    {
+     "name": "Blues on the Green Night",
+     "city": "Austin",
+     "date": "2026-03-21",
+     "category": "live music",
+     "venue": "Zilker Park",
+     "time": "18:00",
+     "price": 0
+    },
+    {
+     "name": "Black Pumas",
+     "city": "Austin",
+     "date": "2026-03-21",
+     "category": "live music",
+     "venue": "Moody Center",
+     "time": "20:00",
+     "price": 75
+    },
+    {
+     "name": "Art Walk East",
+     "city": "Austin",
+     "date": "2026-03-21",
+     "category": "exhibition",
+     "venue": "East Austin",
+     "time": "17:00",
+     "price": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_events": {
+    "duration_s": 42,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "What's going on in Austin this Friday night?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And Saturday too, separately.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "For Saturday, only live music. Friday can be anything.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Is it going to be packed because of South by?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fri",
+   "summary": "Fri: Austin FC 7:30 $45, Velveeta comedy 8pm $25.",
+   "match": {
+    "tool": "search_events",
+    "args": {
+     "date": "2026-03-20"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Austin",
+      "date": "2026-03-20"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Austin",
+     "date": "2026-03-20",
+     "category": {
+      "$absent": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Austin FC",
+      "Velveeta",
+      "comedy"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_sat",
+   "summary": "Sat music: Blues on the Green free 6pm, Black Pumas $75 8pm. Art walk = filter missed.",
+   "match": {
+    "tool": "search_events",
+    "args": {
+     "date": "2026-03-21"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Austin",
+      "date": "2026-03-21"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "category"
+     ],
+     "constraints": {
+      "city": "Austin",
+      "date": "2026-03-21",
+      "category": {
+       "$oneof": [
+        "live music",
+        "music"
+       ]
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Austin",
+     "date": "2026-03-21",
+     "category": {
+      "$oneof": [
+       "live music",
+       "music"
+      ]
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Blues on the Green",
+      "Zilker"
+     ],
+     [
+      "Black Pumas"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Filter only Saturday.",
+   "must_not": "Filter Friday too.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Saturday"
+     ],
+     [
+      "music"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "SXSW crowds.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "crowd",
+      "busy",
+      "packed",
+      "South by"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Filters Friday to music.",
+  "Lists the Saturday art walk."
+ ]
+}

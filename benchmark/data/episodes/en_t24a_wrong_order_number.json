@@ -1,0 +1,203 @@
+{
+ "episode_id": "en_t24a_wrong_order_number",
+ "template_id": "T24_permanent_failure_alternative",
+ "split": "all",
+ "lang": "en",
+ "domain": "shopping",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S8_permanent_failure",
+  "problem_report",
+  "corrected_retry",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "Order lookup fails (no such order); the user gives the correct number; the agent re-runs with it.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-02-23T13:00:00-08:00",
+   "weekday": "Monday"
+  },
+  "materials": {
+   "orders": {
+    "51528": {
+     "item": "standing desk frame",
+     "status": "in transit",
+     "carrier": "UPS",
+     "last_scan": "Ontario, CA",
+     "eta": "2026-02-25"
+    }
+   }
+  },
+  "tool_behaviors": {
+   "track_order": {
+    "duration_s": 16,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 8
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Where's my desk order? Number five five one two eight.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Do desk frames usually come in one box or two?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh, wait, it might be five one five two eight.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_o",
+    "event": "task_failed",
+    "gap": 1,
+    "max_wait": 25,
+    "fallback_s": 35
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Sorry, my eyes are tired.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_o",
+   "summary": "55128 → not found; retry with 51528: in transit, ETA Wed Feb 25.",
+   "match": {
+    "tool": "track_order"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "order_id": "55128"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "retry",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "order_id": "51528"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "order_id": "51528"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "in transit",
+      "UPS",
+      "Ontario"
+     ],
+     [
+      "Wednesday",
+      "25"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "problem_report": {
+    "event": "task_failed",
+    "key_facts": [
+     [
+      "couldn't find",
+      "no order",
+      "doesn't exist",
+      "didn't find",
+      "not find"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Often split shipments.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "two",
+      "separate",
+      "box"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "problem_ack",
+   "must": "Re-run with the corrected number.",
+   "must_not": "Just say okay.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "51528",
+      "instead",
+      "checking"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief.",
+   "must_not": "Change anything.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "no worries",
+      "happens"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Invents a status for the bad number.",
+  "Never re-runs with 51528."
+ ]
+}

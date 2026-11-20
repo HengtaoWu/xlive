@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xlive"
+version = "0.1.0"
+description = "X-Live real-time inference runtime built on X-Talk"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+dependencies = [
+  "aiohttp",
+  "fastapi",
+  "numpy>=1.26,<2",
+  "uvicorn[standard]",
+  "websockets>=13",
+]
+
+[project.scripts]
+xlive = "xlive.cli:main"
+
+[project.entry-points."vllm.general_plugins"]
+xlive_action_gated = "xlive_vllm.plugin:register"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["xlive*"]

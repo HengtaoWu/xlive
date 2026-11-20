@@ -1,0 +1,272 @@
+{
+ "episode_id": "en_t11b_seattle_furnished",
+ "template_id": "T11_amended_result_arrives_while_user_speaks",
+ "split": "all",
+ "lang": "en",
+ "domain": "housing",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S7_result_arrives_while_user_speaks",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Seattle one-bedroom under $2,500; made 'furnished' mid-run; the amended result arrives while the user asks a question.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-07-27T19:00:00-07:00",
+   "weekday": "Monday",
+   "currency": "USD",
+   "note": "Search only; no application or booking tool."
+  },
+  "materials": {
+   "aliases": {
+    "Seattle": [
+     "sea",
+     "seattle wa"
+    ]
+   },
+   "rentals": [
+    {
+     "name": "Fremont Flat",
+     "city": "Seattle",
+     "rent": 1950,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 22
+    },
+    {
+     "name": "Capitol Hill Studio-Plus",
+     "city": "Seattle",
+     "rent": 2150,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 15
+    },
+    {
+     "name": "Ballard Furnished One-Bed",
+     "city": "Seattle",
+     "rent": 2380,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": true,
+     "commute_min": 28
+    },
+    {
+     "name": "SLU Executive Suite",
+     "city": "Seattle",
+     "rent": 2900,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 5
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_rentals": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 3,
+     "release_not_before": {
+      "turn": "u4",
+      "offset": 2.0,
+      "max_hold_s": 40
+     }
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Look for one-bedrooms in Seattle under twenty-five hundred.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "I got the job, by the way! Start date is September first.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "excited"
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh, and it has to be furnished. I'm not hauling furniture across the country.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Is it normal to pay a broker fee in Seattle, or is that a New York thing?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Perfect, I'll take the cheapest of those.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rent",
+   "summary": "Furnished ≤2500: Capitol Hill 2,150, Ballard 2,380. Unamended cheapest is Fremont Flat (unfurnished).",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Seattle",
+      "bedrooms": 1,
+      "max_rent": 2500
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "furnished"
+     ],
+     "constraints": {
+      "city": "Seattle",
+      "bedrooms": 1,
+      "max_rent": 2500,
+      "furnished": true
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Seattle",
+     "bedrooms": 1,
+     "max_rent": 2500,
+     "furnished": true
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Capitol Hill"
+     ],
+     [
+      "2,150",
+      "2150"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "chitchat_no_action",
+   "must": "Celebrate briefly; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "congrat"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Add furnished and keep the rest.",
+   "must_not": "Only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "furnished"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Broker fees uncommon in Seattle; result arrives mid-question: answer first.",
+   "must_not": "Skip the question.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "broker"
+     ],
+     [
+      "application",
+      "deposit",
+      "New York",
+      "uncommon",
+      "not usual"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "Cheapest furnished = Capitol Hill 2,150.",
+   "must_not": "Name Fremont (unfurnished).",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Capitol Hill"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "fremont"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Recommends the unfurnished Fremont Flat.",
+  "Reads the results over the broker question."
+ ]
+}

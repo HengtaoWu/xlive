@@ -1,0 +1,279 @@
+{
+ "episode_id": "en_t04c_sfo_nonstop_morning",
+ "template_id": "T04_modify_preserve_constraints",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "Boston→San Francisco Friday flights; mid-run: nonstop only, nothing before 9 a.m.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-04-20T08:15:00-04:00",
+   "weekday": "Monday",
+   "user_city": "Boston",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Boston": [
+     "BOS",
+     "Logan"
+    ],
+    "San Francisco": [
+     "SFO",
+     "SF",
+     "San Fran"
+    ]
+   },
+   "currency": "USD",
+   "flights": [
+    {
+     "flight_no": "B6 433",
+     "airline": "JetBlue",
+     "origin": "Boston",
+     "destination": "San Francisco",
+     "date": "2026-04-24",
+     "depart": "06:15",
+     "price": 219,
+     "stops": 0
+    },
+    {
+     "flight_no": "DL 1147",
+     "airline": "Delta",
+     "origin": "Boston",
+     "destination": "San Francisco",
+     "date": "2026-04-24",
+     "depart": "08:00",
+     "price": 189,
+     "stops": 1
+    },
+    {
+     "flight_no": "UA 2290",
+     "airline": "United",
+     "origin": "Boston",
+     "destination": "San Francisco",
+     "date": "2026-04-24",
+     "depart": "09:40",
+     "price": 259,
+     "stops": 0
+    },
+    {
+     "flight_no": "AA 2405",
+     "airline": "American",
+     "origin": "Boston",
+     "destination": "San Francisco",
+     "date": "2026-04-24",
+     "depart": "10:30",
+     "price": 179,
+     "stops": 1
+    },
+    {
+     "flight_no": "AS 1325",
+     "airline": "Alaska",
+     "origin": "Boston",
+     "destination": "San Francisco",
+     "date": "2026-04-24",
+     "depart": "11:05",
+     "price": 239,
+     "stops": 0
+    },
+    {
+     "flight_no": "AS 1327",
+     "airline": "Alaska",
+     "origin": "Boston",
+     "destination": "San Francisco",
+     "date": "2026-04-25",
+     "depart": "11:05",
+     "price": 149,
+     "stops": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 46,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you look for flights from Boston to San Francisco this Friday?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Which side of the plane gets the better view when you land in SF?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Actually, nonstop only, and nothing before nine in the morning.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "How early should I get to Logan on a Friday morning?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_flights",
+   "summary": "Nonstop after 9: Alaska AS 1325 $239 (11:05), United $259 (9:40). Unmodified cheapest is AA $179 one-stop; Saturday $149 is a trap.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Boston",
+      "destination": "San Francisco",
+      "date": "2026-04-24"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "depart_after",
+      "nonstop_only"
+     ],
+     "constraints": {
+      "origin": "Boston",
+      "destination": "San Francisco",
+      "date": "2026-04-24",
+      "nonstop_only": true,
+      "depart_after": {
+       "$oneof": [
+        "09:00",
+        "9:00",
+        "09:00:00"
+       ]
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Boston",
+     "destination": "San Francisco",
+     "date": "2026-04-24",
+     "nonstop_only": true,
+     "depart_after": {
+      "$oneof": [
+       "09:00",
+       "9:00",
+       "09:00:00"
+      ]
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "AS 1325",
+      "Alaska"
+     ],
+     [
+      "239"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Left side usually; depends on approach.",
+   "must_not": "Only report search status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "left",
+      "right",
+      "window"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Apply both changes and keep date/route.",
+   "must_not": "Drop the date; only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "nonstop"
+     ],
+     [
+      "9",
+      "nine"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Practical timing (~1.5–2 hours).",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "hour",
+      "minutes"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Reports the one-stop $179 or a Saturday flight.",
+  "Drops the date or route on update."
+ ]
+}

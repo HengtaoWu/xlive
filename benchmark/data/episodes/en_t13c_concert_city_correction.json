@@ -1,0 +1,248 @@
+{
+ "episode_id": "en_t13c_concert_city_correction",
+ "template_id": "T13_bargein_correction",
+ "split": "all",
+ "lang": "en",
+ "domain": "events",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "barge_in_correction",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Saturday concerts; the user cuts into the acknowledgement to change Toronto to Montreal.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-05-18T19:00:00-04:00",
+   "weekday": "Monday",
+   "currency": "CAD"
+  },
+  "materials": {
+   "aliases": {
+    "Toronto": [
+     "TO",
+     "YYZ"
+    ],
+    "Montreal": [
+     "Montréal",
+     "MTL"
+    ]
+   },
+   "events": [
+    {
+     "name": "Arkells",
+     "city": "Toronto",
+     "date": "2026-05-23",
+     "category": "concert",
+     "venue": "Scotiabank Arena",
+     "time": "19:30",
+     "price": 89
+    },
+    {
+     "name": "Arcade Fire",
+     "city": "Montreal",
+     "date": "2026-05-23",
+     "category": "concert",
+     "venue": "Bell Centre",
+     "time": "19:30",
+     "price": 95
+    },
+    {
+     "name": "Indie Night at Casa del Popolo",
+     "city": "Montreal",
+     "date": "2026-05-23",
+     "category": "concert",
+     "venue": "Casa del Popolo",
+     "time": "21:00",
+     "price": 25
+    },
+    {
+     "name": "Arcade Fire (second show)",
+     "city": "Montreal",
+     "date": "2026-05-24",
+     "category": "concert",
+     "venue": "Bell Centre",
+     "time": "19:30",
+     "price": 95
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_events": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "What concerts are on in Toronto this Saturday?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Oh no, sorry, Montreal, not Toronto.",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u1",
+    "delay": 2.5
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is it easy to get a cab after a show at the Bell Centre?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "My best friend and I have been planning this forever. Finally happening.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "excited"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_ev",
+   "summary": "Montreal Sat: Arcade Fire 7:30, Indie Night 9. Toronto Arkells = uncorrected trap; Sunday show = date trap.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Toronto",
+      "date": "2026-05-23",
+      "category": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u2",
+     "deadline_s": 15,
+     "fields": [
+      "city"
+     ],
+     "constraints": {
+      "city": "Montreal",
+      "date": "2026-05-23",
+      "category": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Montreal",
+     "date": "2026-05-23",
+     "category": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Arcade Fire"
+     ],
+     [
+      "Casa del Popolo",
+      "Indie Night"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "constraint_update",
+   "must": "Switch to Montreal in the backend.",
+   "must_not": "Keep searching Toronto.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Montreal"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Hard right after; metro or walk away first.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "metro",
+      "line",
+      "walk",
+      "blocks"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Warm, brief.",
+   "must_not": "Change the task.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "awesome",
+      "great",
+      "finally"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Keeps reporting Toronto concerts.",
+  "Reports the Sunday show."
+ ]
+}

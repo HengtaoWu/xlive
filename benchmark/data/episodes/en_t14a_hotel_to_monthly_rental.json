@@ -1,0 +1,314 @@
+{
+ "episode_id": "en_t14a_hotel_to_monthly_rental",
+ "template_id": "T14_cancel_and_switch",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel+housing",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S5_selective_cancel",
+  "S2_independent_second_task",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Denver hotels for July are cancelled in favour of a furnished monthly rental under $3,000.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-15T09:00:00-06:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Denver": [
+     "DEN",
+     "denver co"
+    ]
+   },
+   "hotels": [
+    {
+     "name": "Union Station Hotel",
+     "city": "Denver",
+     "area": "LoDo",
+     "price_per_night": 310,
+     "rating": 4.7,
+     "walk_min": 1
+    }
+   ],
+   "rentals": [
+    {
+     "name": "Aurora One-Bed",
+     "city": "Denver",
+     "rent": 1700,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 30
+    },
+    {
+     "name": "Highlands Furnished Flat",
+     "city": "Denver",
+     "rent": 2600,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 15
+    },
+    {
+     "name": "LoDo Furnished Loft",
+     "city": "Denver",
+     "rent": 2850,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": true,
+     "commute_min": 8
+    },
+    {
+     "name": "Cherry Creek Suite",
+     "city": "Denver",
+     "rent": 3200,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 12
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_hotels": {
+    "duration_s": 55,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "search_rentals": {
+    "duration_s": 25,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me hotels in Denver from July first through the thirty-first.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Is July a good time to be in Denver, weather-wise?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Actually, scrap the hotels. For a whole month, find me a furnished rental instead, under three thousand.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "My company's paying, so I'm trying not to go crazy with it.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "So which one's closest to downtown?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_rent",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_hotel",
+   "summary": "Hotel search for the whole of July: started u1, cancelled u3; results never reported.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Denver",
+      "check_in": "2026-07-01",
+      "check_out": "2026-07-31"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u3",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  },
+  {
+   "goal_id": "g_rent",
+   "summary": "Furnished ≤3000: Highlands 2,600 (15 min), LoDo 2,850 (8 min → closest). Aurora is unfurnished; Cherry Creek over budget.",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Denver",
+      "furnished": true,
+      "max_rent": 3000,
+      "bedrooms": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Denver",
+     "furnished": true,
+     "max_rent": 3000,
+     "bedrooms": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Highlands"
+     ],
+     [
+      "LoDo"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Warm, dry, afternoon storms.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "warm",
+      "hot",
+      "thunderstorm",
+      "afternoon",
+      "dry"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Cancel the hotel task and start a rental search.",
+   "must_not": "Keep the hotel search; add rentals to it.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "rental"
+     ],
+     [
+      "stop",
+      "cancel",
+      "scrap"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "reasonable",
+      "considerate",
+      "fair"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "LoDo Loft (8 min).",
+   "must_not": "Name a hotel; pick Highlands as closest.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "LoDo"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "union station hotel",
+     "highlands is closest"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Keeps the hotel search running or reports hotels.",
+  "Adds rentals to the hotel task.",
+  "Recommends the unfurnished or over-budget place."
+ ]
+}

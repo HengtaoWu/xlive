@@ -1,0 +1,314 @@
+{
+ "episode_id": "en_t11_kyoto_hotel_budget",
+ "template_id": "T11_amended_result_arrives_while_user_speaks",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S7_result_arrives_while_user_speaks",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action",
+  "no_capability_no_fabrication"
+ ],
+ "user_goal": "Kyoto hotels Fri–Sun near a station; add a $250/night cap; discuss walking while waiting; resolve 'the first one' against recommendations actually heard.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-04-13T20:30:00+09:00",
+   "weekday": "Monday",
+   "user_city": "Tokyo",
+   "note": "Search only; no booking tool.",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Kyoto": [
+     "kyoto city"
+    ]
+   },
+   "hotels": [
+    {
+     "name": "The Ritz-Carlton Kyoto",
+     "city": "Kyoto",
+     "area": "Kamogawa",
+     "price_per_night": 1100,
+     "rating": 4.9,
+     "walk_min": 8
+    },
+    {
+     "name": "Hotel Kanra Kyoto",
+     "city": "Kyoto",
+     "area": "Shimogyo",
+     "price_per_night": 230,
+     "rating": 4.7,
+     "walk_min": 4
+    },
+    {
+     "name": "Sakura Terrace",
+     "city": "Kyoto",
+     "area": "Kyoto Station",
+     "price_per_night": 180,
+     "rating": 4.6,
+     "walk_min": 6
+    },
+    {
+     "name": "Kyoto Tower Hotel",
+     "city": "Kyoto",
+     "area": "Kyoto Station",
+     "price_per_night": 150,
+     "rating": 4.3,
+     "walk_min": 12
+    },
+    {
+     "name": "Hoshinoya Kyoto",
+     "city": "Kyoto",
+     "area": "Arashiyama",
+     "price_per_night": 880,
+     "rating": 4.8,
+     "walk_min": 30
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_hotels": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 3,
+     "release_not_before": {
+      "turn": "u4",
+      "offset": 2.0,
+      "max_hold_s": 40
+     }
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me a hotel in Kyoto for this Friday to Sunday, close to a train station.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "I'm taking my mom. She's wanted to see the temples there for years.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "warm"
+  },
+  {
+   "turn_id": "u3",
+   "text": "Oh, and keep it under two-fifty a night.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "How long is the Philosopher's Path walk, roughly? Her knees aren't great.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Then let's go with the first one. Can you just note it down for me?",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_hotel",
+    "event": "task_completed",
+    "gap": 1.2,
+    "max_wait": 20,
+    "fallback_s": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_hotel",
+   "summary": "Recommend available Kyoto hotels satisfying the updated budget and station preference; retain the dates. Resolve later selection using the spoken recommendation order.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Kyoto",
+      "check_in": "2026-04-17",
+      "check_out": "2026-04-19",
+      "max_walk_min_to_station": {
+       "$optional": {
+        "$range": [
+         3,
+         15
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "max_price_per_night"
+     ],
+     "constraints": {
+      "city": "Kyoto",
+      "check_in": "2026-04-17",
+      "check_out": "2026-04-19",
+      "max_walk_min_to_station": {
+       "$optional": {
+        "$range": [
+         3,
+         15
+        ]
+       }
+      },
+      "max_price_per_night": 250
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Kyoto",
+     "check_in": "2026-04-17",
+     "check_out": "2026-04-19",
+     "max_price_per_night": 250,
+     "max_walk_min_to_station": {
+      "$optional": {
+       "$range": [
+        3,
+        15
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Kanra",
+      "Sakura",
+      "Kyoto Tower"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "chitchat_no_action",
+   "must": "Warm, brief; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "mom",
+      "lovely",
+      "great time",
+      "walking"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Add the cap; keep dates and station distance.",
+   "must_not": "Only agree verbally.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "250"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Give useful advice on whether the walk suits someone with sore knees, such as a short section, rests, or an easier alternative. Also convey available hotel results at an appropriate conversational moment; either order is acceptable if the question is answered.",
+   "must_not": "Skip the question to read results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "kilometer",
+      "km",
+      "minutes"
+     ],
+     [
+      "flat",
+      "bench",
+      "section",
+      "taxi"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "Acknowledge noting the first eligible hotel actually recommended to the user. Follow the spoken order, not backend order. If no recommendation was heard or the reference is ambiguous, ask a brief clarification. A booking disclaimer is optional.",
+   "must_not": "Claim a booking was made or select a hotel that violates the updated budget.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Kanra",
+      "Sakura",
+      "Kyoto Tower",
+      "which hotel",
+      "which one"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "ritz",
+     "booked it",
+     "it's booked",
+     "reservation is confirmed"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Budget agreed verbally only; Ritz-Carlton stays #1.",
+  "Interrupts the walking question to read hotels.",
+  "Claims it booked the hotel."
+ ]
+}

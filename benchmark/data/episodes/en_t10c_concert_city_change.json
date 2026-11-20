@@ -1,0 +1,264 @@
+{
+ "episode_id": "en_t10c_concert_city_change",
+ "template_id": "T10_change_of_mind_status",
+ "split": "all",
+ "lang": "en",
+ "domain": "events",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S5_status_query",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Jazz shows in San Francisco on Saturday; switched to Oakland, same date; status asked.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-01-26T17:00:00-08:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "San Francisco": [
+     "SF",
+     "the city"
+    ],
+    "Oakland": [
+     "the East Bay",
+     "oakland"
+    ]
+   },
+   "events": [
+    {
+     "name": "SFJAZZ Late Set",
+     "city": "San Francisco",
+     "date": "2026-01-31",
+     "category": "jazz",
+     "venue": "SFJAZZ Center",
+     "time": "21:30",
+     "price": 40
+    },
+    {
+     "name": "Yoshi's: Trio Night",
+     "city": "Oakland",
+     "date": "2026-01-31",
+     "category": "jazz",
+     "venue": "Yoshi's",
+     "time": "20:00",
+     "price": 35
+    },
+    {
+     "name": "Fox Theater Big Band",
+     "city": "Oakland",
+     "date": "2026-01-31",
+     "category": "jazz",
+     "venue": "Fox Theater",
+     "time": "19:30",
+     "price": 55
+    },
+    {
+     "name": "Yoshi's Sunday Brunch",
+     "city": "Oakland",
+     "date": "2026-02-01",
+     "category": "jazz",
+     "venue": "Yoshi's",
+     "time": "11:00",
+     "price": 25
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_events": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 25
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Any good jazz shows in San Francisco this Saturday?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "I've been learning saxophone for like three months. I'm terrible, but it's fun.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u3",
+   "text": "Actually, let's do Oakland instead. Same night.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Did it find anything?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_jazz",
+   "summary": "Oakland Sat: Fox Theater Big Band 7:30, Yoshi's Trio 8:00. SFJAZZ is the unchanged-city trap; Sunday brunch the date trap.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "San Francisco",
+      "date": "2026-01-31",
+      "category": {
+       "$optional": {
+        "$oneof": [
+         "jazz",
+         "music",
+         "concert"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "city"
+     ],
+     "constraints": {
+      "city": "Oakland",
+      "date": "2026-01-31",
+      "category": {
+       "$optional": {
+        "$oneof": [
+         "jazz",
+         "music",
+         "concert"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Oakland",
+     "date": "2026-01-31",
+     "category": {
+      "$optional": {
+       "$oneof": [
+        "jazz",
+        "music",
+        "concert"
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Yoshi"
+     ],
+     [
+      "Fox Theater",
+      "Fox"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "chitchat_no_action",
+   "must": "Light encouragement; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "three months",
+      "fun",
+      "motivation",
+      "schedule"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Change city, keep date.",
+   "must_not": "Keep San Francisco; drop the date.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Oakland"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "Grounded status.",
+   "must_not": "Report the SFJAZZ show.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "still",
+      "Yoshi",
+      "Fox"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "sfjazz"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Reports SFJAZZ.",
+  "Reports the Sunday brunch."
+ ]
+}

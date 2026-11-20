@@ -1,0 +1,256 @@
+{
+ "episode_id": "en_t20c_london_show_revert",
+ "template_id": "T20_revert_modification",
+ "split": "all",
+ "lang": "en",
+ "domain": "events",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "revert_change",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "London Saturday: theatre → comedy + £60 cap → back to theatre, keep the cap.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-12-07T19:00:00+00:00",
+   "weekday": "Monday",
+   "currency": "GBP"
+  },
+  "materials": {
+   "aliases": {
+    "London": [
+     "the West End"
+    ]
+   },
+   "events": [
+    {
+     "name": "Hamilton",
+     "city": "London",
+     "date": "2026-12-12",
+     "category": "theatre",
+     "venue": "Victoria Palace Theatre",
+     "time": "19:30",
+     "price": 120
+    },
+    {
+     "name": "The Mousetrap",
+     "city": "London",
+     "date": "2026-12-12",
+     "category": "theatre",
+     "venue": "St Martin's Theatre",
+     "time": "19:30",
+     "price": 55
+    },
+    {
+     "name": "Matilda (matinee)",
+     "city": "London",
+     "date": "2026-12-12",
+     "category": "theatre",
+     "venue": "Cambridge Theatre",
+     "time": "14:30",
+     "price": 45
+    },
+    {
+     "name": "Comedy Store Late Show",
+     "city": "London",
+     "date": "2026-12-12",
+     "category": "comedy",
+     "venue": "The Comedy Store",
+     "time": "22:00",
+     "price": 25
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_events": {
+    "duration_s": 46,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 18
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "What plays are on in London this Saturday?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Actually, maybe comedy instead. Tickets under sixty quid.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "How early should I get to a West End show?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "No, let's go back to a play after all. But keep the sixty-pound limit.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_ev",
+   "summary": "Theatre ≤£60: Matilda matinee £45, Mousetrap £55. Hamilton £120 = cap dropped; Comedy Store = revert missed.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "London",
+      "date": "2026-12-12",
+      "category": "theatre"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u2",
+     "deadline_s": 15,
+     "fields": [
+      "category",
+      "max_price"
+     ],
+     "constraints": {
+      "city": "London",
+      "date": "2026-12-12",
+      "category": "comedy",
+      "max_price": 60
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "category"
+     ],
+     "constraints": {
+      "city": "London",
+      "date": "2026-12-12",
+      "category": "theatre",
+      "max_price": 60
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "London",
+     "date": "2026-12-12",
+     "category": "theatre",
+     "max_price": 60
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Mousetrap"
+     ],
+     [
+      "Matilda"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "constraint_update",
+   "must": "Category + cap.",
+   "must_not": "Apply only one.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "comedy"
+     ],
+     [
+      "60",
+      "sixty"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "20–30 min early.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "minutes"
+     ],
+     [
+      "early",
+      "before",
+      "latecomer"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Revert category; keep cap.",
+   "must_not": "Drop the cap; stay on comedy.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "theatre",
+      "play"
+     ],
+     [
+      "60",
+      "sixty"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Still reports comedy.",
+  "Recommends Hamilton at £120."
+ ]
+}

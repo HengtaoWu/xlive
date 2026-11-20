@@ -1,0 +1,230 @@
+{
+ "episode_id": "en_t19b_studio_or_one_bed",
+ "template_id": "T19_hypothetical_no_change",
+ "split": "all",
+ "lang": "en",
+ "domain": "housing",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "hypothetical_no_action",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "One-bed rental search in Portland; user muses about a studio but keeps one-bedrooms.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-09-07T10:00:00-07:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Portland": [
+     "PDX",
+     "portland or"
+    ]
+   },
+   "rentals": [
+    {
+     "name": "Pearl District Studio",
+     "city": "Portland",
+     "rent": 1350,
+     "bedrooms": 0,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 10
+    },
+    {
+     "name": "Hawthorne One-Bed",
+     "city": "Portland",
+     "rent": 1680,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 18
+    },
+    {
+     "name": "Alberta Arts Flat",
+     "city": "Portland",
+     "rent": 1750,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": false,
+     "commute_min": 22
+    },
+    {
+     "name": "Nob Hill One-Bed",
+     "city": "Portland",
+     "rent": 2100,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": true,
+     "commute_min": 9
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_rentals": {
+    "duration_s": 36,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me one-bedroom apartments in Portland under two thousand.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "I wonder if a studio would save me a lot.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Nah, I work from home, I need a door I can close.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Do landlords there usually ask for first and last month up front?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_r",
+   "summary": "1BR ≤2000: Hawthorne 1,680, Alberta 1,750. Studio (1,350) is the trap if bedrooms dropped.",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Portland",
+      "bedrooms": 1,
+      "max_rent": 2000,
+      "pets_allowed": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Portland",
+     "bedrooms": 1,
+     "max_rent": 2000,
+     "pets_allowed": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Hawthorne"
+     ],
+     [
+      "1,680",
+      "1680"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "no_change",
+   "must": "Answer; do not change bedrooms.",
+   "must_not": "Change the search to studios.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "studio"
+     ],
+     [
+      "one-bed",
+      "one bed",
+      "unless"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "no_change",
+   "must": "Acknowledge; no action.",
+   "must_not": "Change anything.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "one-bed",
+      "one bed",
+      "makes sense"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "First/last + deposit common.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "deposit",
+      "first",
+      "last"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Switches to studios.",
+  "Recommends the Pearl studio."
+ ]
+}

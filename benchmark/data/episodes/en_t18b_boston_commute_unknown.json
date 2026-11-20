@@ -1,0 +1,234 @@
+{
+ "episode_id": "en_t18b_boston_commute_unknown",
+ "template_id": "T18_question_depends_on_pending",
+ "split": "all",
+ "lang": "en",
+ "domain": "housing",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "no_fabrication_pending",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup",
+  "proactive_delivery"
+ ],
+ "user_goal": "Boston one-bed rentals under 3,200; user asks about commutes before results exist, then again after.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-16T12:00:00-04:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Boston": [
+     "boston ma"
+    ]
+   },
+   "rentals": [
+    {
+     "name": "Somerville Two-Family Unit",
+     "city": "Boston",
+     "rent": 2650,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 28
+    },
+    {
+     "name": "Allston Walk-up",
+     "city": "Boston",
+     "rent": 2800,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": false,
+     "commute_min": 24
+    },
+    {
+     "name": "Back Bay Studio-Plus",
+     "city": "Boston",
+     "rent": 3150,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 12
+    },
+    {
+     "name": "South End Brownstone",
+     "city": "Boston",
+     "rent": 3400,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 8
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_rentals": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find one-bedrooms in Boston under thirty-two hundred.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Is any of them going to be under a twenty-minute commute?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is a broker fee still a thing in Boston?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "So, any under twenty minutes?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_r",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_r",
+   "summary": "Under 3,200: Somerville 2,650 (28), Allston 2,800 (24), Back Bay 3,150 (12 → only one under 20). South End 3,400 is over budget.",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Boston",
+      "bedrooms": 1,
+      "max_rent": 3200,
+      "max_commute_min": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Boston",
+     "bedrooms": 1,
+     "max_rent": 3200,
+     "max_commute_min": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Back Bay"
+     ],
+     [
+      "12"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "status_answer",
+   "must": "Admit unknown.",
+   "must_not": "Guess.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "yet",
+      "haven't",
+      "don't know"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "back bay is",
+     "all of them are under",
+     "none of them are"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Broker fee law changed; landlord pays if they hired.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "landlord",
+      "broker"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "grounded_answer",
+   "must": "Back Bay 12 min.",
+   "must_not": "Name South End (over budget).",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Back Bay"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "south end"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Guesses commute times early.",
+  "Suggests the over-budget South End place."
+ ]
+}

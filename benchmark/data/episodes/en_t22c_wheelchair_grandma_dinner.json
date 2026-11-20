@@ -1,0 +1,271 @@
+{
+ "episode_id": "en_t22c_wheelchair_grandma_dinner",
+ "template_id": "T22_absorb_earlier_context",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "context_carryover",
+  "chitchat_no_action",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "The user mentions grandma now uses a wheelchair; later asks for a family dinner; wheelchair access must be applied.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-01-19T11:00:00-06:00",
+   "weekday": "Monday",
+   "user_city": "Chicago"
+  },
+  "materials": {
+   "aliases": {
+    "River North": [
+     "river north"
+    ]
+   },
+   "restaurants": [
+    {
+     "name": "Gene & Georgetti",
+     "area": "River North",
+     "cuisine": "steakhouse",
+     "price_pp": 90,
+     "rating": 4.6,
+     "max_party": 8,
+     "wheelchair_accessible": false,
+     "slots": {
+      "2026-01-24": [
+       "17:30",
+       "19:00"
+      ]
+     }
+    },
+    {
+     "name": "Maggiano's Little Italy",
+     "area": "River North",
+     "cuisine": "Italian",
+     "price_pp": 45,
+     "rating": 4.5,
+     "max_party": 12,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-01-24": [
+       "18:00"
+      ]
+     }
+    },
+    {
+     "name": "RPM Italian",
+     "area": "River North",
+     "cuisine": "Italian",
+     "price_pp": 110,
+     "rating": 4.7,
+     "max_party": 10,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-01-24": [
+       "18:30"
+      ]
+     }
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_restaurants": {
+    "duration_s": 34,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "My grandma took a fall a while back, she's in a wheelchair now when she goes out.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   },
+   "tts_style": "sad"
+  },
+  {
+   "turn_id": "u2",
+   "text": "We want to take her out for dinner in River North this Saturday. Seven of us. Can you find somewhere?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Anything I should keep in mind when eating out with older folks?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Which one's more affordable?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_r",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_r",
+   "summary": "Accessible: RPM 4.7, Maggiano's 4.5. Gene & Georgetti (not accessible) is the trap.",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "River North",
+      "party_size": 7,
+      "date": "2026-01-24",
+      "wheelchair_accessible": true,
+      "cuisine": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "River North",
+     "party_size": 7,
+     "date": "2026-01-24",
+     "wheelchair_accessible": true,
+     "cuisine": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Maggiano"
+     ],
+     [
+      "RPM"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u1",
+   "type": "chitchat_no_action",
+   "must": "Caring, brief.",
+   "must_not": "Start a task.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "sorry",
+      "recover",
+      "hope"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u2",
+   "type": "constraint_update",
+   "must": "Apply wheelchair access and say so.",
+   "must_not": "Ignore the wheelchair.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "wheelchair",
+      "accessible"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Earlier, table location, lighter food.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "earl",
+      "entrance",
+      "restroom",
+      "softer",
+      "lighter"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u4",
+   "type": "grounded_answer",
+   "must": "Maggiano's.",
+   "must_not": "Recommend Gene & Georgetti.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Maggiano"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "gene & georgetti",
+     "gene and georgetti"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Searches without accessibility.",
+  "Recommends Gene & Georgetti."
+ ]
+}

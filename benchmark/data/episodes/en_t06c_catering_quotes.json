@@ -1,0 +1,221 @@
+{
+ "episode_id": "en_t06c_catering_quotes",
+ "template_id": "T06_partial_result_known_unknown",
+ "split": "all",
+ "lang": "en",
+ "domain": "procurement",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S6_partial_result",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Catering quotes incl.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-09-21T09:15:00-07:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Saffron": [
+     "Saffron Catering"
+    ],
+    "Olive Tree": [
+     "Olive Tree Catering",
+     "OliveTree"
+    ]
+   },
+   "vendors": [
+    {
+     "name": "Saffron",
+     "base_price": 3900,
+     "install_fee": 600,
+     "install_fee_ready_s": 0
+    },
+    {
+     "name": "Olive Tree",
+     "base_price": 3600,
+     "install_fee": 1100,
+     "install_fee_ready_s": 9999
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "compare_quotes": {
+    "duration_s": 44,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    },
+    "partial": {
+     "at_s": 11
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Compare Saffron and Olive Tree for the offsite catering, including their setup fees. Budget is five thousand.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Do we know which one's cheaper yet?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_quotes",
+    "event": "task_partial",
+    "delay": 4,
+    "max_wait": 30
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "By the way, how much food should we plan per person for a full-day offsite?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Alright, whichever comes out cheaper gets the contract.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_quotes",
+    "event": "task_completed",
+    "delay": 12,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_quotes",
+   "summary": "Catering quotes incl. setup, budget 5000. Partial: Saffron 4,500; Olive Tree base 3,600 lower, fee missing. Final Olive Tree 4,700 → Saffron cheaper.",
+   "match": {
+    "tool": "compare_quotes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "vendors": [
+       "Saffron",
+       "Olive Tree"
+      ],
+      "include_install_fee": true,
+      "budget": 5000
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "vendors": [
+      "Saffron",
+      "Olive Tree"
+     ],
+     "include_install_fee": true,
+     "budget": 5000
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Saffron"
+     ],
+     [
+      "4,500",
+      "4500"
+     ],
+     [
+      "4,700",
+      "4700"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "partial_answer",
+   "must": "Known vs unknown.",
+   "must_not": "Declare Olive Tree cheaper.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "not yet",
+      "can't tell",
+      "depends",
+      "missing"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "olive tree is cheaper",
+     "go with olive tree"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Practical per-person planning.",
+   "must_not": "Only quote status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "lunch",
+      "snack",
+      "extra",
+      "percent"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Saffron (4,500 vs 4,700).",
+   "must_not": "Pick Olive Tree.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Saffron"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "olive tree is cheaper"
+    ]
+   },
+   "latency": false
+  }
+ ],
+ "failure_conditions": [
+  "Calls Olive Tree cheaper from the partial."
+ ]
+}

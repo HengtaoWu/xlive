@@ -1,0 +1,274 @@
+{
+ "episode_id": "en_t22a_vegan_sister_recipes",
+ "template_id": "T22_absorb_earlier_context",
+ "split": "all",
+ "lang": "en",
+ "domain": "cooking",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "context_carryover",
+  "chitchat_no_action",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "User mentions their sister went vegan, later asks for lentil recipes for her visit; diet=vegan must be inferred.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-04-27T17:00:00-07:00",
+   "weekday": "Monday"
+  },
+  "materials": {
+   "recipes": [
+    {
+     "name": "Lentil Shepherd's Pie",
+     "ingredients": [
+      "lentils",
+      "potatoes",
+      "carrots",
+      "butter"
+     ],
+     "diet": [
+      "vegetarian",
+      "gluten_free"
+     ],
+     "time_min": 60
+    },
+    {
+     "name": "Red Lentil Dal",
+     "ingredients": [
+      "lentils",
+      "coconut milk",
+      "tomatoes",
+      "onion"
+     ],
+     "diet": [
+      "vegetarian",
+      "vegan",
+      "gluten_free"
+     ],
+     "time_min": 35
+    },
+    {
+     "name": "Lentil Bolognese",
+     "ingredients": [
+      "lentils",
+      "pasta",
+      "tomatoes",
+      "garlic"
+     ],
+     "diet": [
+      "vegetarian",
+      "vegan"
+     ],
+     "time_min": 40
+    },
+    {
+     "name": "Lentil Soup with Sausage",
+     "ingredients": [
+      "lentils",
+      "sausage",
+      "carrots"
+     ],
+     "diet": [],
+     "time_min": 45
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "find_recipes": {
+    "duration_s": 32,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "My sister went vegan last month. Family dinners have gotten complicated.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "She's coming Saturday. Can you find me something with lentils?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Do I need to soak lentils first?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Which one's the quickest?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_rec",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rec",
+   "summary": "Vegan lentil: Dal 35, Bolognese 40. Shepherd's pie (butter) = vegan dropped.",
+   "match": {
+    "tool": "find_recipes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "ingredients": {
+       "$contains": [
+        "lentils"
+       ]
+      },
+      "diet": "vegan",
+      "max_time_min": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "servings": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "ingredients": {
+      "$contains": [
+       "lentils"
+      ]
+     },
+     "diet": "vegan",
+     "max_time_min": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "servings": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Dal"
+     ],
+     [
+      "Bolognese"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u1",
+   "type": "chitchat_no_action",
+   "must": "Brief, warm; no task yet.",
+   "must_not": "Start a task.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "adjust",
+      "good",
+      "complicated"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u2",
+   "type": "constraint_update",
+   "must": "Apply vegan from the earlier remark and say so.",
+   "must_not": "Search without the diet filter.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "vegan"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "No soaking.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "no",
+      "rinse",
+      "don't need"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u4",
+   "type": "grounded_answer",
+   "must": "Dal 35 min.",
+   "must_not": "Name the shepherd's pie.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Dal"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "shepherd"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Searches without vegan.",
+  "Suggests the shepherd's pie with butter."
+ ]
+}

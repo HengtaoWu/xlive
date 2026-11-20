@@ -1,0 +1,267 @@
+{
+ "episode_id": "en_t20a_barcelona_area_revert",
+ "template_id": "T20_revert_modification",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "revert_change",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Barcelona hotels: Gothic → Eixample + €200 cap → back to Gothic but keep the cap.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-04-27T10:00:00+02:00",
+   "weekday": "Monday",
+   "currency": "EUR"
+  },
+  "materials": {
+   "aliases": {
+    "Barcelona": [
+     "BCN"
+    ],
+    "Gothic Quarter": [
+     "Gothic",
+     "Barri Gòtic",
+     "the Gothic Quarter"
+    ],
+    "Eixample": [
+     "L'Eixample"
+    ]
+   },
+   "hotels": [
+    {
+     "name": "Hotel Neri",
+     "city": "Barcelona",
+     "area": "Gothic Quarter",
+     "price_per_night": 340,
+     "rating": 4.8,
+     "walk_min": 5
+    },
+    {
+     "name": "Hotel Catedral",
+     "city": "Barcelona",
+     "area": "Gothic Quarter",
+     "price_per_night": 185,
+     "rating": 4.5,
+     "walk_min": 3
+    },
+    {
+     "name": "Hotel Jardí",
+     "city": "Barcelona",
+     "area": "Gothic Quarter",
+     "price_per_night": 140,
+     "rating": 4.2,
+     "walk_min": 6
+    },
+    {
+     "name": "Casa Fuster",
+     "city": "Barcelona",
+     "area": "Eixample",
+     "price_per_night": 260,
+     "rating": 4.7,
+     "walk_min": 2
+    },
+    {
+     "name": "Praktik Rambla",
+     "city": "Barcelona",
+     "area": "Eixample",
+     "price_per_night": 160,
+     "rating": 4.4,
+     "walk_min": 3
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_hotels": {
+    "duration_s": 48,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 18
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find hotels in Barcelona's Gothic Quarter, May fourteenth to seventeenth.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Actually, try Eixample instead, and keep it under two hundred a night.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is the Gothic Quarter loud at night?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Hmm, you know what, go back to the Gothic Quarter. But keep the two hundred limit.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_h",
+   "summary": "Gothic ≤€200: Catedral 4.5 €185, Jardí €140. Neri (€340) means the cap was dropped; Eixample means the revert was missed.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Barcelona",
+      "check_in": "2026-05-14",
+      "check_out": "2026-05-17",
+      "area": "Gothic Quarter"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u2",
+     "deadline_s": 15,
+     "fields": [
+      "area",
+      "max_price_per_night"
+     ],
+     "constraints": {
+      "city": "Barcelona",
+      "check_in": "2026-05-14",
+      "check_out": "2026-05-17",
+      "area": "Eixample",
+      "max_price_per_night": 200
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "area"
+     ],
+     "constraints": {
+      "city": "Barcelona",
+      "check_in": "2026-05-14",
+      "check_out": "2026-05-17",
+      "area": "Gothic Quarter",
+      "max_price_per_night": 200
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Barcelona",
+     "check_in": "2026-05-14",
+     "check_out": "2026-05-17",
+     "area": "Gothic Quarter",
+     "max_price_per_night": 200
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Catedral"
+     ],
+     [
+      "185"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "constraint_update",
+   "must": "Area→Eixample + cap 200.",
+   "must_not": "Ignore one of the two.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Eixample"
+     ],
+     [
+      "200"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Can be noisy; courtyard room.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "noise",
+      "noisy",
+      "loud",
+      "courtyard"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Revert area only; keep cap.",
+   "must_not": "Drop the cap; stay in Eixample.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Gothic"
+     ],
+     [
+      "200"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Stays in Eixample.",
+  "Drops the €200 cap and suggests Hotel Neri."
+ ]
+}

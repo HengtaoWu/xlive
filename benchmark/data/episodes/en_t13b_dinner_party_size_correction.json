@@ -1,0 +1,294 @@
+{
+ "episode_id": "en_t13b_dinner_party_size_correction",
+ "template_id": "T13_bargein_correction",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "barge_in_correction",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Italian dinner in the Mission tomorrow; user cuts in to change 4 → 6 people.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-04-20T14:00:00-07:00",
+   "weekday": "Monday",
+   "user_city": "San Francisco"
+  },
+  "materials": {
+   "aliases": {
+    "Mission": [
+     "the Mission",
+     "Mission District"
+    ]
+   },
+   "restaurants": [
+    {
+     "name": "Flour + Water",
+     "area": "Mission",
+     "cuisine": "Italian",
+     "price_pp": 75,
+     "rating": 4.8,
+     "max_party": 4,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-04-21": [
+       "19:00",
+       "20:30"
+      ]
+     }
+    },
+    {
+     "name": "Delfina",
+     "area": "Mission",
+     "cuisine": "Italian",
+     "price_pp": 60,
+     "rating": 4.6,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-04-21": [
+       "19:30"
+      ]
+     }
+    },
+    {
+     "name": "Beretta",
+     "area": "Mission",
+     "cuisine": "Italian pizza",
+     "price_pp": 40,
+     "rating": 4.4,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-04-21": [
+       "18:45",
+       "21:00"
+      ]
+     }
+    },
+    {
+     "name": "Lolinda",
+     "area": "Mission",
+     "cuisine": "Argentine",
+     "price_pp": 55,
+     "rating": 4.5,
+     "max_party": 10,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-04-21": [
+       "19:00"
+      ]
+     }
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_restaurants": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find us a table for four at an Italian place in the Mission tomorrow night.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Oh wait, make that six. Two more friends are coming.",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u1",
+    "delay": 2.5
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Do places in SF add a service charge on top of the tip?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "It's my roommate's going-away dinner. I'm really going to miss her.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "warm"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_r",
+   "summary": "Italian for 6 Tue: Delfina 7:30, Beretta 6:45/9. Flour + Water (max 4) is the uncorrected trap.",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Mission",
+      "party_size": 4,
+      "date": "2026-04-21",
+      "cuisine": {
+       "$optional": {
+        "$oneof": [
+         "Italian",
+         "italian"
+        ]
+       }
+      },
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u2",
+     "deadline_s": 15,
+     "fields": [
+      "party_size"
+     ],
+     "constraints": {
+      "area": "Mission",
+      "party_size": 6,
+      "date": "2026-04-21",
+      "cuisine": {
+       "$optional": {
+        "$oneof": [
+         "Italian",
+         "italian"
+        ]
+       }
+      },
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "Mission",
+     "party_size": 6,
+     "date": "2026-04-21",
+     "cuisine": {
+      "$optional": {
+       "$oneof": [
+        "Italian",
+        "italian"
+       ]
+      }
+     },
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Delfina"
+     ],
+     [
+      "Beretta"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "constraint_update",
+   "must": "Change to 6 people in the backend.",
+   "must_not": "Keep searching for four.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "six",
+      "6"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "SF surcharges are common; tip separately.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "surcharge",
+      "service charge",
+      "percent",
+      "%"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Warm, brief; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "miss",
+      "send-off",
+      "bittersweet",
+      "sad"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Recommends Flour + Water (max 4).",
+  "Ignores the correction."
+ ]
+}

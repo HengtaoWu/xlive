@@ -1,0 +1,284 @@
+{
+ "episode_id": "en_t11d_denver_nonstop",
+ "template_id": "T11_amended_result_arrives_while_user_speaks",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S7_result_arrives_while_user_speaks",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action",
+  "no_capability_no_fabrication"
+ ],
+ "user_goal": "Austin→Denver Thursday flights; made nonstop mid-run; amended result arrives during a question; no booking tool.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-02-09T12:00:00-06:00",
+   "weekday": "Monday",
+   "currency": "USD",
+   "note": "Search only; no booking tool."
+  },
+  "materials": {
+   "aliases": {
+    "Austin": [
+     "AUS"
+    ],
+    "Denver": [
+     "DEN"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "WN 1882",
+     "airline": "Southwest",
+     "origin": "Austin",
+     "destination": "Denver",
+     "date": "2026-02-12",
+     "depart": "07:05",
+     "price": 129,
+     "stops": 1
+    },
+    {
+     "flight_no": "UA 1520",
+     "airline": "United",
+     "origin": "Austin",
+     "destination": "Denver",
+     "date": "2026-02-12",
+     "depart": "09:20",
+     "price": 178,
+     "stops": 0
+    },
+    {
+     "flight_no": "F9 2214",
+     "airline": "Frontier",
+     "origin": "Austin",
+     "destination": "Denver",
+     "date": "2026-02-12",
+     "depart": "13:45",
+     "price": 149,
+     "stops": 0
+    },
+    {
+     "flight_no": "WN 1890",
+     "airline": "Southwest",
+     "origin": "Austin",
+     "destination": "Denver",
+     "date": "2026-02-13",
+     "depart": "08:00",
+     "price": 99,
+     "stops": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 3,
+     "release_not_before": {
+      "turn": "u4",
+      "offset": 2.0,
+      "max_hold_s": 40
+     }
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Check flights from Austin to Denver on Thursday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "First ski trip in like ten years. My knees are already nervous.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u3",
+   "text": "Actually, nonstop only. I don't want to sit around in some airport.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Do I need to worry about altitude sickness in Denver, or only up in the mountains?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Book the cheapest one.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "Nonstop Thu: Frontier $149 13:45, United $178 9:20. Unamended cheapest is Southwest $129 one-stop; Friday $99 is a trap.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Austin",
+      "destination": "Denver",
+      "date": "2026-02-12"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "nonstop_only"
+     ],
+     "constraints": {
+      "origin": "Austin",
+      "destination": "Denver",
+      "date": "2026-02-12",
+      "nonstop_only": true
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Austin",
+     "destination": "Denver",
+     "date": "2026-02-12",
+     "nonstop_only": true
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Frontier",
+      "F9 2214"
+     ],
+     [
+      "149"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "chitchat_no_action",
+   "must": "Light reply; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "knee",
+      "ha",
+      "blue",
+      "easy"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Add nonstop, keep route/date.",
+   "must_not": "Only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "nonstop"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Altitude advice; result arrives mid-question: answer first.",
+   "must_not": "Skip the question.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "altitude",
+      "feet",
+      "water",
+      "mountains",
+      "resort"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "Cheapest nonstop = Frontier $149; no booking capability.",
+   "must_not": "Name Southwest $129; claim it's booked.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Frontier",
+      "149"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "southwest",
+     "i've booked",
+     "you're booked",
+     "booking confirmed"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Names the $129 one-stop.",
+  "Claims to have booked.",
+  "Reports Friday's $99 flight."
+ ]
+}

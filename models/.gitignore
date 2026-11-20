@@ -1,0 +1,9 @@
+/x-live-dual/*
+!/x-live-dual/README.md
+!/x-live-dual/LICENSE
+!/x-live-dual/xlive_protocol.json
+!/x-live-dual/inference_transformers.py
+
+/qwen-asr/checkpoint/
+/breeze-tts/checkpoint/
+/smart-turn/checkpoint/

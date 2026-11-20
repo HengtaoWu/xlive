@@ -1,0 +1,274 @@
+{
+ "episode_id": "en_t03b_portland_dog",
+ "template_id": "T03_incremental_constraint",
+ "split": "all",
+ "lang": "en",
+ "domain": "housing",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S3_incremental_requirements",
+  "clarify_before_start",
+  "chitchat_no_action",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "Two-bedroom in Portland up to $2,400; a dog is mentioned after the search starts.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-02-09T18:30:00-08:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Portland": [
+     "portland oregon",
+     "PDX"
+    ]
+   },
+   "rentals": [
+    {
+     "name": "Alberta Arts Duplex",
+     "city": "Portland",
+     "rent": 2250,
+     "bedrooms": 2,
+     "pets": false,
+     "furnished": false,
+     "commute_min": 20
+    },
+    {
+     "name": "Sellwood Garden Flat",
+     "city": "Portland",
+     "rent": 2350,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 24
+    },
+    {
+     "name": "Pearl District Loft",
+     "city": "Portland",
+     "rent": 2390,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": true,
+     "commute_min": 10
+    },
+    {
+     "name": "Hawthorne House",
+     "city": "Portland",
+     "rent": 2600,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 15
+    },
+    {
+     "name": "Gresham Two-Bed",
+     "city": "Gresham",
+     "rent": 1900,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 45
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_rentals": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you help me find an apartment?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Portland, two bedrooms, up to twenty-four hundred a month. Go ahead.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "We're finally moving in together, which is exciting and a little terrifying.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "warm"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Oh, I forgot, we have a dog.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Is renter's insurance something we actually need?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rent",
+   "summary": "With pets: Sellwood 2,350, Pearl 2,390. Without the dog filter Alberta Arts (no pets) ranks first.",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Portland",
+      "bedrooms": 2,
+      "max_rent": 2400
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "pets_allowed"
+     ],
+     "constraints": {
+      "city": "Portland",
+      "bedrooms": 2,
+      "max_rent": 2400,
+      "pets_allowed": true
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Portland",
+     "bedrooms": 2,
+     "max_rent": 2400,
+     "pets_allowed": true
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Sellwood"
+     ],
+     [
+      "Pearl"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u1",
+   "type": "clarification",
+   "must": "Ask for city / size / budget before searching.",
+   "must_not": "Start a search with invented details.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "city",
+      "bedroom",
+      "budget",
+      "where"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "chitchat_no_action",
+   "must": "Warm, short; no task change.",
+   "must_not": "Modify the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "congrat",
+      "exciting",
+      "big step"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Acknowledge and actually add the pet requirement.",
+   "must_not": "Only say 'noted'.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "dog",
+      "pet"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "knowledge_answer",
+   "must": "Explain renter's insurance value.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "cheap",
+      "landlord",
+      "liability",
+      "belongings",
+      "cover"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Searches before knowing the city.",
+  "Never adds the pet filter (Alberta Arts comes first).",
+  "Treats the chit-chat as a change."
+ ]
+}

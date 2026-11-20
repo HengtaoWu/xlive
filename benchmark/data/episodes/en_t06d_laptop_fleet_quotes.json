@@ -1,0 +1,228 @@
+{
+ "episode_id": "en_t06d_laptop_fleet_quotes",
+ "template_id": "T06_partial_result_known_unknown",
+ "split": "all",
+ "lang": "en",
+ "domain": "procurement",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S6_partial_result",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Laptop quotes incl.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-11-16T14:00:00+00:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Northwind": [
+     "Northwind IT",
+     "North Wind"
+    ],
+    "Contoso": [
+     "Contoso Devices"
+    ]
+   },
+   "vendors": [
+    {
+     "name": "Northwind",
+     "base_price": 24000,
+     "install_fee": 2500,
+     "install_fee_ready_s": 0
+    },
+    {
+     "name": "Contoso",
+     "base_price": 23000,
+     "install_fee": 3000,
+     "install_fee_ready_s": 9999
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "compare_quotes": {
+    "duration_s": 48,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    },
+    "partial": {
+     "at_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Compare Northwind and Contoso for the twenty laptops, including their imaging and setup fee. We have twenty-seven thousand.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Any idea which one's cheaper?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_quotes",
+    "event": "task_partial",
+    "delay": 4,
+    "max_wait": 30
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Should we lease them instead of buying, given they're replaced every three years?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Fine, let's go with whichever is cheaper.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_quotes",
+    "event": "task_completed",
+    "delay": 12,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_quotes",
+   "summary": "Laptop quotes incl. setup, budget 27000. Partial: Northwind 26,500; Contoso base 23,000, fee missing. Final Contoso 26,000 → Contoso cheaper (opposite of the other T06 variants).",
+   "match": {
+    "tool": "compare_quotes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "vendors": [
+       "Northwind",
+       "Contoso"
+      ],
+      "include_install_fee": true,
+      "budget": 27000
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "vendors": [
+      "Northwind",
+      "Contoso"
+     ],
+     "include_install_fee": true,
+     "budget": 27000
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Contoso"
+     ],
+     [
+      "26,000",
+      "26000"
+     ],
+     [
+      "500"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "partial_answer",
+   "must": "Known vs unknown; no premature winner either way.",
+   "must_not": "Declare a winner.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "not yet",
+      "can't tell",
+      "depends",
+      "hasn't arrived",
+      "missing"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "northwind is cheaper",
+     "contoso is cheaper",
+     "go with northwind"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Lease vs buy trade-off.",
+   "must_not": "Only quote status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "lease",
+      "leasing"
+     ],
+     [
+      "upfront",
+      "cheaper",
+      "refresh",
+      "overall"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Contoso (26,000 vs 26,500).",
+   "must_not": "Pick Northwind.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Contoso"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "northwind is cheaper",
+     "go with northwind"
+    ]
+   },
+   "latency": false
+  }
+ ],
+ "failure_conditions": [
+  "Declares a winner from the partial.",
+  "Picks Northwind."
+ ]
+}

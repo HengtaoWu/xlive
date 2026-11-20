@@ -1,0 +1,286 @@
+{
+ "episode_id": "en_t03d_design_review_slot",
+ "template_id": "T03_incremental_constraint",
+ "split": "all",
+ "lang": "en",
+ "domain": "work_planning",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S3_incremental_requirements",
+  "clarify_before_start",
+  "chitchat_no_action",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "90-minute design review next Tuesday afternoon; a fourth attendee is added after the search starts.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-10-05T09:30:00-07:00",
+   "weekday": "Monday",
+   "user_name": "me",
+   "colleagues": [
+    "Priya",
+    "Tom",
+    "Dana"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "me": [
+     "I",
+     "myself",
+     "user"
+    ],
+    "Priya": [
+     "Priya S"
+    ],
+    "Tom": [
+     "Thomas"
+    ],
+    "Dana": [
+     "Dana K"
+    ]
+   },
+   "calendars": {
+    "2026-10-13": {
+     "me": [
+      [
+       "13:00",
+       "13:30"
+      ]
+     ],
+     "Priya": [
+      [
+       "15:00",
+       "16:00"
+      ]
+     ],
+     "Tom": [
+      [
+       "17:30",
+       "18:00"
+      ]
+     ],
+     "Dana": [
+      [
+       "13:30",
+       "15:00"
+      ],
+      [
+       "17:30",
+       "18:00"
+      ]
+     ]
+    }
+   }
+  },
+  "tool_behaviors": {
+   "find_meeting_slots": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 18
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you find a time for the design review next week?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Me, Priya and Tom, ninety minutes, Tuesday afternoon.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Tom's been out sick all week, poor guy. Hopefully he's back by then.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Oh, and Dana needs to be there too.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Does a design review really need a written agenda, or is that overkill?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_slot",
+   "summary": "With Dana: only 16:00-17:30. Without Dana 13:30-15:00 comes first (trap).",
+   "match": {
+    "tool": "find_meeting_slots"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "attendees": [
+       "me",
+       "Priya",
+       "Tom"
+      ],
+      "date": "2026-10-13",
+      "part_of_day": "afternoon",
+      "duration_min": 90
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "attendees"
+     ],
+     "constraints": {
+      "attendees": {
+       "$contains": [
+        "me",
+        "Priya",
+        "Tom",
+        "Dana"
+       ]
+      },
+      "date": "2026-10-13",
+      "part_of_day": "afternoon",
+      "duration_min": 90
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "attendees": {
+      "$contains": [
+       "me",
+       "Priya",
+       "Tom",
+       "Dana"
+      ]
+     },
+     "date": "2026-10-13",
+     "part_of_day": "afternoon",
+     "duration_min": 90
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "4",
+      "16:00",
+      "four"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u1",
+   "type": "clarification",
+   "must": "Ask attendees / length (and day) before searching.",
+   "must_not": "Search with guessed attendees.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "who",
+      "how long",
+      "attendees",
+      "which day"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "chitchat_no_action",
+   "must": "Sympathetic, brief; no task change.",
+   "must_not": "Remove Tom or change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "hope",
+      "better",
+      "sick"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Add Dana to the actual search.",
+   "must_not": "Only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Dana"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "knowledge_answer",
+   "must": "Reasoned opinion on agendas.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "agenda",
+      "decision"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Never adds Dana (proposes 1:30).",
+  "Searches before knowing who attends."
+ ]
+}

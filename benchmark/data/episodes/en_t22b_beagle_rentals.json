@@ -1,0 +1,243 @@
+{
+ "episode_id": "en_t22b_beagle_rentals",
+ "template_id": "T22_absorb_earlier_context",
+ "split": "all",
+ "lang": "en",
+ "domain": "housing",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "context_carryover",
+  "chitchat_no_action",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "User mentions adopting a beagle; later asks for apartments; pets_allowed must be inferred.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-08-24T19:00:00-06:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Denver": [
+     "DEN"
+    ]
+   },
+   "rentals": [
+    {
+     "name": "Baker Two-Bed",
+     "city": "Denver",
+     "rent": 2150,
+     "bedrooms": 2,
+     "pets": false,
+     "furnished": false,
+     "commute_min": 14
+    },
+    {
+     "name": "Wash Park Duplex",
+     "city": "Denver",
+     "rent": 2380,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 18
+    },
+    {
+     "name": "Sloan's Lake Two-Bed",
+     "city": "Denver",
+     "rent": 2450,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 22
+    },
+    {
+     "name": "RiNo Loft",
+     "city": "Denver",
+     "rent": 2700,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": true,
+     "commute_min": 10
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_rentals": {
+    "duration_s": 34,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "We adopted a beagle this weekend! His name's Waffles.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   },
+   "tts_style": "excited"
+  },
+  {
+   "turn_id": "u2",
+   "text": "Anyway, can you look for two-bedrooms in Denver under twenty-five hundred?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Do beagles do okay in apartments?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Which is cheapest?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_r",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_r",
+   "summary": "Pet-friendly 2BR ≤2500: Wash Park 2,380, Sloan's Lake 2,450. Baker (no pets) is the trap.",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Denver",
+      "bedrooms": 2,
+      "max_rent": 2500,
+      "pets_allowed": true
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Denver",
+     "bedrooms": 2,
+     "max_rent": 2500,
+     "pets_allowed": true
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Wash Park"
+     ],
+     [
+      "2,380",
+      "2380"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u1",
+   "type": "chitchat_no_action",
+   "must": "Warm, brief.",
+   "must_not": "Start a task.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "congrat",
+      "waffles",
+      "great"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u2",
+   "type": "constraint_update",
+   "must": "Infer pets_allowed and say so.",
+   "must_not": "Ignore the dog.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "pet"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Vocal; exercise.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "exercise",
+      "walk",
+      "bark",
+      "howl",
+      "vocal"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u4",
+   "type": "grounded_answer",
+   "must": "Wash Park 2,380.",
+   "must_not": "Name Baker (no pets).",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Wash Park"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "baker"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Omits pets_allowed.",
+  "Recommends the Baker unit."
+ ]
+}

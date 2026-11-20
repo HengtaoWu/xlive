@@ -1,0 +1,282 @@
+{
+ "episode_id": "en_t10_sync_meeting_day_change",
+ "template_id": "T10_change_of_mind_status",
+ "split": "all",
+ "lang": "en",
+ "domain": "scheduling",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S5_status_query",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Find an hour Wednesday afternoon with Priya and Tom; moved to Thursday afternoon, everything else unchanged.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-09-14T10:00:00-07:00",
+   "weekday": "Monday",
+   "user_name": "the user ('me' in calendars)",
+   "colleagues": [
+    "Priya",
+    "Tom",
+    "Ana"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "me": [
+     "myself",
+     "user"
+    ],
+    "Priya": [
+     "Priya Raman"
+    ],
+    "Tom": [
+     "Tom Becker"
+    ]
+   },
+   "calendars": {
+    "2026-09-16": {
+     "me": [
+      [
+       "09:00",
+       "10:00"
+      ],
+      [
+       "15:00",
+       "16:00"
+      ]
+     ],
+     "Tom": [
+      [
+       "13:00",
+       "14:00"
+      ],
+      [
+       "16:00",
+       "17:30"
+      ]
+     ],
+     "Priya": [
+      [
+       "17:30",
+       "18:00"
+      ]
+     ],
+     "Ana": []
+    },
+    "2026-09-17": {
+     "me": [
+      [
+       "13:00",
+       "14:00"
+      ]
+     ],
+     "Tom": [
+      [
+       "14:00",
+       "15:00"
+      ]
+     ],
+     "Priya": [
+      [
+       "16:30",
+       "17:30"
+      ]
+     ],
+     "Ana": []
+    }
+   }
+  },
+  "tool_behaviors": {
+   "find_meeting_slots": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 26
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me an hour Wednesday afternoon when Priya, Tom and I are all free. It's for the project sync.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "This week is insane. I've been in meetings nonstop since Monday morning.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "tired"
+  },
+  {
+   "turn_id": "u3",
+   "text": "Ah wait, I have a doctor's appointment Wednesday afternoon. Make it Thursday afternoon, still an hour.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Did you find something?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_slot",
+   "summary": "Thu afternoon: only 3:00–4:30 works. Wed 2–3 is the trap.",
+   "match": {
+    "tool": "find_meeting_slots"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "attendees": {
+       "$contains": [
+        "me",
+        "Priya",
+        "Tom"
+       ]
+      },
+      "date": "2026-09-16",
+      "part_of_day": "afternoon",
+      "duration_min": 60
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "date"
+     ],
+     "constraints": {
+      "attendees": {
+       "$contains": [
+        "me",
+        "Priya",
+        "Tom"
+       ]
+      },
+      "date": "2026-09-17",
+      "part_of_day": "afternoon",
+      "duration_min": 60
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "attendees": {
+      "$contains": [
+       "me",
+       "Priya",
+       "Tom"
+      ]
+     },
+     "date": "2026-09-17",
+     "part_of_day": "afternoon",
+     "duration_min": 60
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "3:00",
+      "3 p.m.",
+      "three",
+      "15:00"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "chitchat_no_action",
+   "must": "Brief empathy; no change.",
+   "must_not": "Change the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "exhausting",
+      "tiring",
+      "rough",
+      "worse"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Move to Thursday; keep attendees and duration.",
+   "must_not": "Keep searching Wednesday.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Thursday"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "Truthful status for Thursday; no Wednesday slot.",
+   "must_not": "Offer Wednesday 2 p.m.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "still",
+      "3:00",
+      "three"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "wednesday at 2",
+     "2 p.m. wednesday"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Still searches Wednesday or offers Wednesday 2–3.",
+  "Drops an attendee or the duration."
+ ]
+}

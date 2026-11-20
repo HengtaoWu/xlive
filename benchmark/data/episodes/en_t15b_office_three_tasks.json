@@ -1,0 +1,367 @@
+{
+ "episode_id": "en_t15b_office_three_tasks",
+ "template_id": "T15_three_tasks_reference",
+ "split": "all",
+ "lang": "en",
+ "domain": "office_admin",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S5_status_query",
+  "S5_selective_cancel",
+  "ordinal_reference",
+  "proactive_delivery"
+ ],
+ "user_goal": "Office manager runs cleaning quotes, a meeting-slot search, and an order lookup; asks about 'the middle one'; cancels the quotes.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-09-14T11:00:00-04:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Brightway": [
+     "Brightway Cleaning"
+    ],
+    "Spotless": [
+     "Spotless Co",
+     "Spotless Pros"
+    ],
+    "Priya": [
+     "Priya Shah"
+    ],
+    "Marcus": [
+     "Marcus Lee"
+    ]
+   },
+   "vendors": [
+    {
+     "name": "Brightway",
+     "base_price": 2400,
+     "install_fee": 0,
+     "install_fee_ready_s": 0
+    },
+    {
+     "name": "Spotless",
+     "base_price": 2150,
+     "install_fee": 300,
+     "install_fee_ready_s": 0
+    }
+   ],
+   "calendars": {
+    "2026-09-16": {
+     "me": [
+      [
+       "09:00",
+       "10:30"
+      ],
+      [
+       "14:00",
+       "15:00"
+      ]
+     ],
+     "Priya": [
+      [
+       "11:00",
+       "12:00"
+      ],
+      [
+       "15:00",
+       "16:00"
+      ]
+     ],
+     "Marcus": [
+      [
+       "13:00",
+       "14:00"
+      ]
+     ]
+    }
+   },
+   "orders": {
+    "88104": {
+     "item": "printer toner (x6)",
+     "status": "out for delivery",
+     "carrier": "FedEx",
+     "last_scan": "local facility",
+     "eta": "2026-09-14"
+    }
+   }
+  },
+  "tool_behaviors": {
+   "compare_quotes": {
+    "duration_s": 70,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "find_meeting_slots": {
+    "duration_s": 45,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 15
+    }
+   },
+   "track_order": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 8
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Get me quotes from Brightway and Spotless for the office cleaning contract.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Then find an hour Wednesday for me, Priya and Marcus.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "And where's the toner order? Eight eight one oh four.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "What's happening with the middle one?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Forget the cleaning quotes, my boss already signed with someone.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u6",
+   "text": "Typical, nobody tells me anything.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "annoyed"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_q",
+   "summary": "Cleaning quotes: started u1, cancelled u5.",
+   "match": {
+    "tool": "compare_quotes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "vendors": [
+       "Brightway",
+       "Spotless"
+      ]
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u5",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  },
+  {
+   "goal_id": "g_slot",
+   "summary": "Wed: free 10:30–11:00 (too short), 12:00–13:00, 16:00–18:00. For 60 min: 12–1 and 4–6.",
+   "match": {
+    "tool": "find_meeting_slots"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "attendees": {
+       "$contains": [
+        "Priya",
+        "Marcus"
+       ]
+      },
+      "date": "2026-09-16",
+      "duration_min": 60,
+      "part_of_day": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "attendees": {
+      "$contains": [
+       "Priya",
+       "Marcus"
+      ]
+     },
+     "date": "2026-09-16",
+     "duration_min": 60,
+     "part_of_day": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "10:30",
+      "ten thirty"
+     ],
+     [
+      "4",
+      "16:00",
+      "four"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_ord",
+   "summary": "Toner out for delivery today via FedEx.",
+   "match": {
+    "tool": "track_order"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "order_id": "88104"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "order_id": "88104"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "out for delivery",
+      "today"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "'Middle one' = meeting-slot search; truthful status.",
+   "must_not": "Report quotes or the order.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "meeting",
+      "Wednesday",
+      "slot"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u5",
+   "type": "selective_cancel",
+   "must": "Cancel only the quotes.",
+   "must_not": "Cancel all tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "quote",
+      "cleaning"
+     ],
+     [
+      "meeting",
+      "order"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u6",
+   "type": "chitchat_no_action",
+   "must": "Empathetic, brief.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "frustrating",
+      "annoying",
+      "least"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Treats 'middle one' as the order or quotes.",
+  "Reports cleaning quotes after cancellation."
+ ]
+}

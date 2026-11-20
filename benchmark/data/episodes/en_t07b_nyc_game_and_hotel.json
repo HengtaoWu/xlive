@@ -1,0 +1,346 @@
+{
+ "episode_id": "en_t07b_nyc_game_and_hotel",
+ "template_id": "T07_out_of_order_delivery_topic_shift",
+ "split": "all",
+ "lang": "en",
+ "domain": "events",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S7_out_of_order_results",
+  "S7_result_arrives_while_user_speaks",
+  "S1_related_qa_during_wait",
+  "no_capability_no_fabrication"
+ ],
+ "user_goal": "Games at Madison Square Garden on the 21st plus a nearby hotel; user asks to buy tickets (no purchase tool).",
+ "environment": {
+  "agent_context": {
+   "now": "2026-11-16T12:00:00-05:00",
+   "weekday": "Monday",
+   "note": "Search only; no ticket purchase or booking tool.",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "New York": [
+     "NYC",
+     "Manhattan",
+     "new york city"
+    ]
+   },
+   "events": [
+    {
+     "name": "Knicks vs. Celtics",
+     "city": "New York",
+     "date": "2026-11-21",
+     "category": "sports",
+     "venue": "Madison Square Garden",
+     "time": "19:30",
+     "price": 85
+    },
+    {
+     "name": "Rangers vs. Bruins",
+     "city": "New York",
+     "date": "2026-11-21",
+     "category": "sports",
+     "venue": "Madison Square Garden",
+     "time": "13:00",
+     "price": 70
+    },
+    {
+     "name": "Liberty Pre-season Showcase",
+     "city": "New York",
+     "date": "2026-11-21",
+     "category": "sports",
+     "venue": "Barclays Center",
+     "time": "19:00",
+     "price": 35
+    },
+    {
+     "name": "Knicks vs. Heat",
+     "city": "New York",
+     "date": "2026-11-22",
+     "category": "sports",
+     "venue": "Madison Square Garden",
+     "time": "18:00",
+     "price": 60
+    }
+   ],
+   "hotels": [
+    {
+     "name": "Penn Plaza Hotel",
+     "city": "New York",
+     "area": "Midtown",
+     "price_per_night": 289,
+     "rating": 4.3,
+     "walk_min": 2
+    },
+    {
+     "name": "Chelsea Lane Inn",
+     "city": "New York",
+     "area": "Chelsea",
+     "price_per_night": 245,
+     "rating": 4.6,
+     "walk_min": 8
+    },
+    {
+     "name": "Brooklyn Bridge Lodge",
+     "city": "New York",
+     "area": "Brooklyn",
+     "price_per_night": 199,
+     "rating": 4.7,
+     "walk_min": 35
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_events": {
+    "duration_s": 50,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 15
+    },
+    "release_not_before": {
+     "turn": "u4",
+     "offset": 2,
+     "max_hold_s": 40
+    }
+   },
+   "search_hotels": {
+    "duration_s": 13,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "What games are on in New York on Saturday the twenty-first?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And a hotel for that night, close to the subway.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is the subway safe late at night after a game?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "And is it worth getting there early, or do people just show up at tip-off?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Nice. Get me two tickets for the evening one.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_games",
+   "summary": "Nov 21: Rangers 1pm $70, Liberty 7pm $35 (Brooklyn), Knicks 7:30 $85. Two evening events → 'the evening one' is ambiguous. Arrives mid-u4.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "New York",
+      "date": "2026-11-21",
+      "category": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "New York",
+     "date": "2026-11-21",
+     "category": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Knicks"
+     ],
+     [
+      "Rangers"
+     ],
+     [
+      "Liberty"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_hotel",
+   "summary": "Near transit: Chelsea Lane 4.6, Penn Plaza 4.3; Brooklyn lodge (35 min) is not 'near'.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "New York",
+      "check_in": "2026-11-21",
+      "check_out": "2026-11-22",
+      "max_walk_min_to_station": {
+       "$optional": {
+        "$range": [
+         3,
+         15
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "New York",
+     "check_in": "2026-11-21",
+     "check_out": "2026-11-22",
+     "max_walk_min_to_station": {
+      "$optional": {
+       "$range": [
+        3,
+        15
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Chelsea Lane"
+     ],
+     [
+      "Penn Plaza"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Practical safety answer.",
+   "must_not": "Only talk about the searches.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "busy",
+      "fans",
+      "generally",
+      "conductor",
+      "crowd"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Arrival advice. Game results arrive mid-question; answer first, deliver after.",
+   "must_not": "Skip the question for the results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "early",
+      "security",
+      "minutes"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "No purchase capability; resolve the ambiguity (two evening events).",
+   "must_not": "Claim tickets were bought.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Knicks",
+      "Liberty",
+      "7:30",
+      "which"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "i've bought",
+     "tickets are booked",
+     "purchased your tickets",
+     "you're all set"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Claims to have bought tickets.",
+  "Presents hotel results as games.",
+  "Reads game results over the user's question."
+ ]
+}

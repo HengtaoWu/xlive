@@ -1,0 +1,384 @@
+from __future__ import annotations
+
+import asyncio
+import json
+
+from typing import Any, Callable, TYPE_CHECKING
+
+from fastapi import WebSocketDisconnect
+
+if TYPE_CHECKING:
+    from fastapi import WebSocket
+
+from ...log_utils import logger
+
+from ...runtime.event_bus import EventBus
+from ...runtime.protocol_events import (
+    ErrorOccurred,
+    WebSocketMessageReceived,
+    AudioFrameReceived,
+    VADSpeechStart,
+    VADSpeechEnd,
+    TTSPlaybackFinished,
+    TTSPlaybackStarted,
+    TTSVoiceChange,
+    TTSSpeedChange,
+    TTSChunkPlayed,
+    ClockSyncReceived,
+    SessionConfigReceived,
+    SessionReady,
+    TaskCancelRequested,
+)
+from ...runtime.manager import EventListenerMixin
+
+
+def _clamp(value: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, value))
+
+
+def _require(data: dict, key: str, session_id: str, context: str) -> bool:
+    """Return True when *key* is present and non-empty; log a warning otherwise."""
+    if not data.get(key):
+        logger.warning("%s: %s is required - session: %s", context, key, session_id)
+        return False
+    return True
+
+
+def _resolve_input_sample_rate(config: dict[str, Any] | None) -> int:
+    """Resolve the configured input sample rate with a safe default."""
+    if config is None:
+        return 16000
+
+    configured_sample_rate = config.get("input_sample_rate", 16000)
+    try:
+        return int(configured_sample_rate)
+    except (TypeError, ValueError):
+        logger.warning(
+            "Invalid input_sample_rate %r; falling back to 16000",
+            configured_sample_rate,
+        )
+        return 16000
+
+
+class TextMsgHandler(EventListenerMixin):
+    """Text signal handler that dispatches frontend control messages to events."""
+
+    def __init__(
+        self,
+        event_bus: EventBus,
+        session_id: str,
+        websocket: WebSocket,
+    ):
+        self.session_id = session_id
+        self.websocket = websocket
+        self.event_bus = event_bus
+
+        # Build dispatch table: message type -> handler callable
+        self._dispatch: dict[str, Callable[[dict], Any]] = {
+            "ping": self._handle_ping,
+            "clock_sync": self._handle_clock_sync,
+            "vad_speech_start": self._handle_vad_speech_start,
+            "vad_speech_end": self._handle_vad_speech_end,
+            "tts_playback_finished": self._handle_tts_playback_finished,
+            "tts_playback_started": self._handle_tts_playback_started,
+            "tts_chunk_played": self._handle_tts_chunk_played,
+            "change_voice": self._handle_change_voice,
+            "change_tts_speed": self._handle_change_tts_speed,
+            "session_config": self._handle_session_config,
+            "session_ready": self._handle_session_ready,
+            "cancel_task": self._handle_cancel_task,
+        }
+
+    async def _publish(self, event) -> None:
+        await self.event_bus.publish(event)
+
+    async def _handle_ping(self, message_data: dict) -> None:
+        """Handle heartbeat ping and reply with pong (includes server timestamp)."""
+        pong_message = json.dumps(
+            {
+                "action": "pong",
+                "client_timestamp": message_data.get("timestamp", 0),
+                "server_recv_timestamp": int(
+                    message_data.get("_server_recv_ts", 0) * 1000
+                ),
+            }
+        )
+        await self.websocket.send_text(pong_message)
+
+    async def _handle_clock_sync(self, message_data: dict) -> None:
+        """Handle clock-sync payloads so LatencyManager can update offsets."""
+        await self._publish(
+            ClockSyncReceived(
+                session_id=self.session_id,
+                client_send_ts=message_data.get("client_send_ts", 0.0),
+                server_recv_ts=message_data.get("server_recv_ts", 0.0),
+                client_recv_ts=message_data.get("client_recv_ts", 0.0),
+            )
+        )
+
+    async def _handle_vad_speech_start(self, message_data: dict) -> None:
+        """Handle VAD speech-start signal."""
+        await self._publish(
+            VADSpeechStart(session_id=self.session_id, origin="client")
+        )
+
+    async def _handle_vad_speech_end(self, message_data: dict) -> None:
+        """Handle VAD speech-end signal after flushing higher-priority listeners."""
+        await self.event_bus.publish(
+            VADSpeechEnd(
+                session_id=self.session_id,
+                origin="client",
+            ),
+            wait_for_completion=True,
+        )
+
+    async def _handle_tts_playback_finished(self, message_data: dict) -> None:
+        """Handle frontend TTS playback completion and transition to idle."""
+        await self.event_bus.publish(
+            TTSPlaybackFinished(
+                session_id=self.session_id,
+                generation_id=message_data.get("generation_id", ""),
+                utterance_id=message_data.get("utterance_id", ""),
+            ),
+            wait_for_completion=True,
+        )
+
+    async def _handle_tts_playback_started(self, message_data: dict) -> None:
+        """Record the browser-side start of actual audio playback."""
+        await self.event_bus.publish(
+            TTSPlaybackStarted(
+                session_id=self.session_id,
+                generation_id=message_data.get("generation_id", ""),
+                utterance_id=message_data.get("utterance_id", ""),
+                chunk_id=message_data.get("chunk_id", ""),
+            ),
+            wait_for_completion=True,
+        )
+
+    async def _handle_change_voice(self, message_data: dict) -> None:
+        """Handle requests to change the reference voice."""
+        voice_name = message_data.get("voice_name")
+        if voice_name not in ("zh", "en"):
+            raise ValueError("voice_name must be zh or en")
+        await self.event_bus.publish(
+            TTSVoiceChange(session_id=self.session_id, voice_name=voice_name),
+            wait_for_completion=True,
+        )
+
+    async def _handle_change_tts_speed(self, message_data: dict) -> None:
+        """Handle requests to adjust TTS playback speed."""
+        speed = _clamp(float(message_data.get("speed", 1.0)), 0.5, 1.5)
+        await self._publish(TTSSpeedChange(session_id=self.session_id, speed=speed))
+
+    async def _handle_tts_chunk_played(self, message_data: dict) -> None:
+        """Handle frontend confirmation that a TTS chunk finished playback."""
+        await self.event_bus.publish(
+            TTSChunkPlayed(
+                session_id=self.session_id,
+                generation_id=message_data.get("generation_id", ""),
+                utterance_id=message_data.get("utterance_id", ""),
+                chunk_id=message_data.get("chunk_id", ""),
+            ),
+            wait_for_completion=True,
+        )
+
+    async def _handle_session_ready(self, message_data: dict) -> None:
+        """Notify managers after browser capture and playback are open."""
+        language = message_data.get("voice_name", "zh")
+        await self._handle_change_voice({"voice_name": language})
+        await self.event_bus.publish(
+            SessionReady(
+                session_id=self.session_id,
+                request_greeting=message_data.get("request_greeting") is True,
+                language=language,
+            ),
+            wait_for_completion=True,
+        )
+
+    async def _handle_cancel_task(self, message_data: dict) -> None:
+        """Cancel the Agent task that owns a user-closed whiteboard."""
+
+        task_id = message_data.get("task_id")
+        if not isinstance(task_id, str) or not task_id.strip():
+            logger.warning("cancel_task: task_id is required - session: %s", self.session_id)
+            return
+        await self.event_bus.publish(
+            TaskCancelRequested(
+                session_id=self.session_id,
+                task_id=task_id.strip(),
+            ),
+            wait_for_completion=True,
+        )
+
+    async def _handle_session_config(self, message_data: dict) -> None:
+        """Handle per-session configuration from client."""
+        await self._publish(
+            SessionConfigReceived(session_id=self.session_id)
+        )
+
+    @EventListenerMixin.event_handler(WebSocketMessageReceived, priority=90)
+    async def _handle_websocket_message_received(
+        self, event: WebSocketMessageReceived
+    ) -> None:
+        """Handle WebSocket message events coming from the gateway layer."""
+        message = event.message
+
+        try:
+            message_data = json.loads(message)
+        except json.JSONDecodeError:
+            logger.warning(
+                "Failed to parse WebSocket text - session: %s, payload: %s",
+                self.session_id,
+                message,
+            )
+            return
+
+        # Inject server receive timestamp for ping handler
+        message_data["_server_recv_ts"] = event.timestamp
+
+        message_type = message_data.get("action") or message_data.get("type", "unknown")
+
+        handler = self._dispatch.get(message_type)
+        if handler is not None:
+            await handler(message_data)
+        else:
+            logger.warning(
+                "Unknown text signal: %s - session: %s",
+                message_type,
+                self.session_id,
+            )
+
+
+class InputGateway(EventListenerMixin):
+    """WebSocket input gateway responsible for translating inbound frames into events."""
+
+    def __init__(
+        self,
+        event_bus: EventBus,
+        session_id: str,
+        websocket: WebSocket,
+        config: dict[str, Any] | None = None,
+    ):
+        self.event_bus = event_bus
+        self.session_id = session_id
+        self.websocket = websocket
+        self.config: dict[str, Any] = config or {}
+        self.input_sample_rate = _resolve_input_sample_rate(self.config)
+        self._pending_text_tasks: set[asyncio.Task[None]] = set()
+        self._text_message_lock = asyncio.Lock()
+
+        self.text_msg_handler = TextMsgHandler(event_bus, session_id, websocket)
+
+    async def handle_connection(self, already_accepted: bool = False) -> None:
+        if not already_accepted:
+            try:
+                await self.websocket.accept()
+            except Exception as e:
+                logger.error(
+                    "Failed to accept connection - session: %s, error: %s",
+                    self.session_id,
+                    e,
+                )
+
+    async def handle_message_loop(self) -> None:
+        """Main receive loop that dispatches WebSocket messages."""
+        try:
+            while True:
+                data = await self.websocket.receive()
+                if data.get("type") == "websocket.disconnect":
+                    break
+                if data.get("type") == "websocket.receive" and "text" in data:
+                    self._schedule_text_message(data["text"])
+                    continue
+                await self._process_message(data)
+        except WebSocketDisconnect as e:
+            logger.info(
+                "WebSocket disconnected - session: %s, code: %s, reason: %s",
+                self.session_id,
+                e.code,
+                e.reason,
+            )
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "disconnect" in error_msg or "closed" in error_msg:
+                logger.info(
+                    "WebSocket already closed - session: %s, detail: %s",
+                    self.session_id,
+                    e,
+                )
+            else:
+                logger.error(
+                    "WebSocket message processing error - session: %s, error: %s",
+                    self.session_id,
+                    e,
+                )
+        finally:
+            await self._wait_for_pending_text_tasks()
+
+    def _schedule_text_message(self, text_message: str) -> None:
+        """Run text message handling without blocking binary frame reception."""
+        task = asyncio.create_task(self._run_text_message_task(text_message))
+        self._pending_text_tasks.add(task)
+        task.add_done_callback(self._pending_text_tasks.discard)
+
+    async def _run_text_message_task(self, text_message: str) -> None:
+        """Handle one text message and surface task failures through logging."""
+        try:
+            async with self._text_message_lock:
+                await self._handle_text_message(text_message)
+        except Exception as e:
+            error_msg = str(e).lower()
+            if "disconnect" in error_msg or "closed" in error_msg:
+                logger.info(
+                    "WebSocket text message task stopped after disconnect - session: %s, detail: %s",
+                    self.session_id,
+                    e,
+                )
+            else:
+                logger.error(
+                    "WebSocket text message task failed - session: %s, error: %s",
+                    self.session_id,
+                    e,
+                )
+
+    async def _wait_for_pending_text_tasks(self) -> None:
+        """Await all in-flight text message tasks before shutting down the loop."""
+        if not self._pending_text_tasks:
+            return
+        pending = tuple(self._pending_text_tasks)
+        await asyncio.gather(*pending, return_exceptions=True)
+
+    async def _process_message(self, data: dict) -> None:
+        """Process a raw WebSocket receive payload and publish events."""
+        if data["type"] != "websocket.receive":
+            return
+
+        if "bytes" in data:
+            await self._handle_audio_message(data["bytes"])
+
+    async def _handle_text_message(self, text_message: str) -> None:
+        """Publish text messages as WebSocket events without interpreting business logic."""
+        await self.event_bus.publish(
+            WebSocketMessageReceived(session_id=self.session_id, message=text_message),
+            wait_for_completion=True,
+        )
+
+    async def _handle_audio_message(self, audio_data: bytes) -> None:
+        """Publish raw audio frames; enhancer logic runs in EnhancerManager."""
+        await self.event_bus.publish(
+            AudioFrameReceived(
+                session_id=self.session_id,
+                audio_data=audio_data,
+                sample_rate=self.input_sample_rate,
+            )
+        )
+
+    @EventListenerMixin.event_handler(ErrorOccurred, priority=10)
+    async def _handle_error_event(self, event: ErrorOccurred) -> None:
+        """Handle backend error events."""
+        logger.error(
+            "Error event received - session: %s, type: %s, message: %s",
+            self.session_id,
+            event.error_type,
+            event.error_message,
+        )

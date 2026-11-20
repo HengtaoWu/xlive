@@ -1,0 +1,245 @@
+{
+ "episode_id": "en_t18c_flight_arrival_unknown",
+ "template_id": "T18_question_depends_on_pending",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "no_fabrication_pending",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup",
+  "proactive_delivery"
+ ],
+ "user_goal": "Dallas→Chicago flights; the user asks if any land before noon before results exist (no guessing), then again after.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-07-13T20:00:00-05:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Dallas": [
+     "DFW",
+     "Love Field"
+    ],
+    "Chicago": [
+     "ORD",
+     "O'Hare",
+     "Midway"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "NK 702",
+     "airline": "Spirit",
+     "origin": "Dallas",
+     "destination": "Chicago",
+     "date": "2026-07-16",
+     "depart": "13:00",
+     "arrive": "15:25",
+     "price": 85,
+     "stops": 0
+    },
+    {
+     "flight_no": "WN 910",
+     "airline": "Southwest",
+     "origin": "Dallas",
+     "destination": "Chicago",
+     "date": "2026-07-16",
+     "depart": "09:30",
+     "arrive": "12:05",
+     "price": 118,
+     "stops": 0
+    },
+    {
+     "flight_no": "AA 2301",
+     "airline": "American",
+     "origin": "Dallas",
+     "destination": "Chicago",
+     "date": "2026-07-16",
+     "depart": "07:00",
+     "arrive": "09:25",
+     "price": 164,
+     "stops": 0
+    },
+    {
+     "flight_no": "UA 1302",
+     "airline": "United",
+     "origin": "Dallas",
+     "destination": "Chicago",
+     "date": "2026-07-16",
+     "depart": "08:00",
+     "arrive": "10:30",
+     "price": 189,
+     "stops": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 40,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Look up flights from Dallas to Chicago this Thursday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Will any of them get me there before noon?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is Chicago brutally hot in July?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "So, anything landing before noon?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_fl",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "Before noon: AA 7:00→9:25 $164; UA 8:00→10:30 $189. Southwest lands 12:05 (just after); Spirit cheapest but lands 3:25 (trap).",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Dallas",
+      "destination": "Chicago",
+      "date": "2026-07-16"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Dallas",
+     "destination": "Chicago",
+     "date": "2026-07-16"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "American",
+      "AA 2301"
+     ],
+     [
+      "9:25"
+     ],
+     [
+      "164"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "status_answer",
+   "must": "Admit unknown.",
+   "must_not": "Guess.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "don't know",
+      "haven't",
+      "not yet"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "yes, there's one",
+     "none of them land"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Hot, humid, storms.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "eighties",
+      "nineties",
+      "humid",
+      "hot"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "grounded_answer",
+   "must": "AA 9:25, UA 10:30.",
+   "must_not": "Offer Spirit as landing before noon.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "American",
+      "United"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "spirit lands before noon",
+     "spirit gets you there before noon"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Guesses before results.",
+  "Says Spirit lands before noon."
+ ]
+}

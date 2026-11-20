@@ -1,0 +1,280 @@
+{
+ "episode_id": "en_t28a_redeye_hotel_date",
+ "template_id": "T28_dependent_task",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "dependent_request",
+  "result_grounded_followup",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Cheapest SF→Boston is a red-eye landing the next morning; the hotel must start the day it lands.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-05-25T10:00:00-07:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "San Francisco": [
+     "SF",
+     "SFO"
+    ],
+    "Boston": [
+     "BOS",
+     "Logan"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "B6 434",
+     "airline": "JetBlue",
+     "origin": "San Francisco",
+     "destination": "Boston",
+     "date": "2026-06-04",
+     "depart": "22:30",
+     "arrive": "next day 07:05",
+     "price": 189,
+     "stops": 0
+    },
+    {
+     "flight_no": "UA 1240",
+     "airline": "United",
+     "origin": "San Francisco",
+     "destination": "Boston",
+     "date": "2026-06-04",
+     "depart": "08:00",
+     "arrive": "16:35",
+     "price": 264,
+     "stops": 0
+    }
+   ],
+   "hotels": [
+    {
+     "name": "Omni Parker House",
+     "city": "Boston",
+     "area": "Downtown",
+     "price_per_night": 289,
+     "rating": 4.5,
+     "walk_min": 2
+    },
+    {
+     "name": "Revere Hotel",
+     "city": "Boston",
+     "area": "Back Bay",
+     "price_per_night": 259,
+     "rating": 4.4,
+     "walk_min": 4
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   },
+   "search_hotels": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Flights from SF to Boston on Thursday, June fourth. Cheapest you can find.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Can I sleep on a red-eye, realistically?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Okay, I'll take the cheapest one. Now find me a hotel for two nights starting the day I land.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_fl",
+    "event": "task_completed",
+    "delay": 6,
+    "max_wait": 50
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Can I check in that early?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "JetBlue red-eye 189, lands Fri 7:05am.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "San Francisco",
+      "destination": "Boston",
+      "date": "2026-06-04"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "San Francisco",
+     "destination": "Boston",
+     "date": "2026-06-04"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "JetBlue",
+      "189"
+     ],
+     [
+      "red-eye",
+      "7:05",
+      "next morning"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u3"
+   ]
+  },
+  {
+   "goal_id": "g_ho",
+   "summary": "Check-in must be Jun 5 (landing day), not Jun 4.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Boston",
+      "check_in": "2026-06-05",
+      "check_out": "2026-06-07"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Boston",
+     "check_in": "2026-06-05",
+     "check_out": "2026-06-07"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Omni",
+      "Revere"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Tips.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "window",
+      "mask",
+      "sleep"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "dependent_request",
+   "must": "Derive check-in = landing day (Jun 5).",
+   "must_not": "Use Thursday the 4th.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Friday",
+      "5th",
+      "fifth"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "thursday the 4th to"
+    ]
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Bag hold; ask early check-in.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "bag",
+      "early"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Books the hotel from Thursday the 4th.",
+  "Starts the hotel before knowing the flight."
+ ]
+}

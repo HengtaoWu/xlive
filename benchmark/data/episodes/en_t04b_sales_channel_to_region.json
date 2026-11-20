@@ -1,0 +1,272 @@
+{
+ "episode_id": "en_t04b_sales_channel_to_region",
+ "template_id": "T04_modify_preserve_constraints",
+ "split": "all",
+ "lang": "en",
+ "domain": "data_analysis",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "Last month's sales by channel, switched mid-run to by region (same month, same metric).",
+ "environment": {
+  "agent_context": {
+   "now": "2026-12-03T11:00:00+00:00",
+   "weekday": "Thursday",
+   "data_sources": [
+    "sales warehouse"
+   ]
+  },
+  "materials": {
+   "sales_rows": [
+    {
+     "month": "2026-11",
+     "region": "North",
+     "channel": "web",
+     "status": "completed",
+     "orders": 900,
+     "revenue": 90000
+    },
+    {
+     "month": "2026-11",
+     "region": "North",
+     "channel": "retail",
+     "status": "completed",
+     "orders": 750,
+     "revenue": 60000
+    },
+    {
+     "month": "2026-11",
+     "region": "West",
+     "channel": "web",
+     "status": "completed",
+     "orders": 1400,
+     "revenue": 140000
+    },
+    {
+     "month": "2026-11",
+     "region": "West",
+     "channel": "retail",
+     "status": "completed",
+     "orders": 1250,
+     "revenue": 100000
+    },
+    {
+     "month": "2026-11",
+     "region": "South",
+     "channel": "web",
+     "status": "completed",
+     "orders": 700,
+     "revenue": 70000
+    },
+    {
+     "month": "2026-11",
+     "region": "South",
+     "channel": "retail",
+     "status": "completed",
+     "orders": 625,
+     "revenue": 50000
+    },
+    {
+     "month": "2026-11",
+     "region": "East",
+     "channel": "web",
+     "status": "completed",
+     "orders": 600,
+     "revenue": 60000
+    },
+    {
+     "month": "2026-11",
+     "region": "East",
+     "channel": "retail",
+     "status": "completed",
+     "orders": 500,
+     "revenue": 40000
+    },
+    {
+     "month": "2026-10",
+     "region": "North",
+     "channel": "web",
+     "status": "completed",
+     "orders": 1500,
+     "revenue": 260000
+    },
+    {
+     "month": "2026-10",
+     "region": "West",
+     "channel": "web",
+     "status": "completed",
+     "orders": 1100,
+     "revenue": 180000
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "analyze_sales": {
+    "duration_s": 48,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 22
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "How did each sales channel do last month?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "What's a healthy repeat-purchase rate, roughly?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Wait, let's look at it by region instead. Same month.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "What's the difference between a cohort and a segment, anyway?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_sales",
+   "summary": "Nov by region: West 240k > North 150k > South 120k > East 100k. October would put North first (trap if the month is dropped).",
+   "match": {
+    "tool": "analyze_sales"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "month": "2026-11",
+      "group_by": "channel",
+      "metric": "revenue"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "group_by"
+     ],
+     "constraints": {
+      "month": "2026-11",
+      "group_by": "region",
+      "metric": "revenue"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "month": "2026-11",
+     "group_by": "region",
+     "metric": "revenue",
+     "exclude_refunded": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "West"
+     ],
+     [
+      "240"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "General benchmark with caveats.",
+   "must_not": "Invent the user's own rate.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "percent",
+      "%",
+      "depends"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Switch to region while keeping November and revenue.",
+   "must_not": "Drop the month; start a new analysis for another month.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "region"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Cohort = time-based grouping; segment = attribute-based.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "cohort"
+     ],
+     [
+      "segment"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Reports by channel.",
+  "Uses October.",
+  "Says it switched but never updates the task."
+ ]
+}

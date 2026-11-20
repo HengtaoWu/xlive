@@ -1,0 +1,376 @@
+{
+ "episode_id": "en_t07d_dc_trip_no_booking",
+ "template_id": "T07_out_of_order_delivery_topic_shift",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S7_out_of_order_results",
+  "S7_result_arrives_while_user_speaks",
+  "S1_related_qa_during_wait",
+  "no_capability_no_fabrication"
+ ],
+ "user_goal": "Boston→Washington flights + hotel near the National Mall; the user says 'book the morning one' but there is no booking tool and two morning flights.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-23T19:30:00-04:00",
+   "weekday": "Monday",
+   "user_city": "Boston",
+   "note": "Search only; no booking.",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Boston": [
+     "BOS",
+     "Logan"
+    ],
+    "Washington": [
+     "DC",
+     "D.C.",
+     "DCA",
+     "Reagan National"
+    ],
+    "National Mall": [
+     "the Mall",
+     "Mall"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "DL 2412",
+     "airline": "Delta",
+     "origin": "Boston",
+     "destination": "Washington",
+     "date": "2026-03-27",
+     "depart": "07:00",
+     "price": 198,
+     "stops": 0
+    },
+    {
+     "flight_no": "AA 2130",
+     "airline": "American",
+     "origin": "Boston",
+     "destination": "Washington",
+     "date": "2026-03-27",
+     "depart": "08:30",
+     "price": 215,
+     "stops": 0
+    },
+    {
+     "flight_no": "B6 1263",
+     "airline": "JetBlue",
+     "origin": "Boston",
+     "destination": "Washington",
+     "date": "2026-03-27",
+     "depart": "13:20",
+     "price": 139,
+     "stops": 0
+    },
+    {
+     "flight_no": "NK 880",
+     "airline": "Spirit",
+     "origin": "Boston",
+     "destination": "Washington",
+     "date": "2026-03-28",
+     "depart": "06:50",
+     "price": 69,
+     "stops": 0
+    }
+   ],
+   "hotels": [
+    {
+     "name": "Hotel Washington",
+     "city": "Washington",
+     "area": "National Mall",
+     "price_per_night": 420,
+     "rating": 4.8,
+     "walk_min": 5
+    },
+    {
+     "name": "Hamilton Hotel",
+     "city": "Washington",
+     "area": "Downtown",
+     "price_per_night": 260,
+     "rating": 4.6,
+     "walk_min": 3
+    },
+    {
+     "name": "Dulles Airport Inn",
+     "city": "Washington",
+     "area": "Dulles",
+     "price_per_night": 140,
+     "rating": 4.1,
+     "walk_min": 30
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 50,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 15
+    },
+    "release_not_before": {
+     "turn": "u4",
+     "offset": 2,
+     "max_hold_s": 40
+    }
+   },
+   "search_hotels": {
+    "duration_s": 12,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 8
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Check flights from Boston to DC this Friday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And a hotel near the National Mall through Sunday.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Are the monuments worth seeing at night?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "And from Reagan airport to the Mall, is the Metro easy?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Okay, book me on the morning one.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_flights",
+   "summary": "Fri: JetBlue 1:20pm $139, Delta 7am $198, American 8:30 $215; two morning flights. Saturday Spirit $69 is a date trap. Lands during u4.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Boston",
+      "destination": "Washington",
+      "date": "2026-03-27"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Boston",
+     "destination": "Washington",
+     "date": "2026-03-27"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Delta",
+      "DL 2412"
+     ],
+     [
+      "American",
+      "AA 2130"
+     ],
+     [
+      "JetBlue",
+      "B6 1263"
+     ],
+     [
+      "139",
+      "198",
+      "215"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_hotel",
+   "summary": "Hotel Washington 4.8, Hamilton 4.6.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Washington",
+      "check_in": "2026-03-27",
+      "check_out": "2026-03-29",
+      "max_walk_min_to_station": {
+       "$optional": {
+        "$range": [
+         3,
+         15
+        ]
+       }
+      },
+      "area": {
+       "$optional": {
+        "$oneof": [
+         "National Mall",
+         "Downtown"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Washington",
+     "check_in": "2026-03-27",
+     "check_out": "2026-03-29",
+     "area": {
+      "$optional": {
+       "$oneof": [
+        "National Mall",
+        "Downtown"
+       ]
+      }
+     },
+     "max_walk_min_to_station": {
+      "$optional": {
+       "$range": [
+        3,
+        15
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Hotel Washington"
+     ],
+     [
+      "Hamilton"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Lit up, less crowded, open late.",
+   "must_not": "Only say it's searching.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "lit",
+      "crowd",
+      "open",
+      "night"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Blue/Yellow line. Flight results land mid-question: answer first.",
+   "must_not": "Skip the question to read results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Blue",
+      "Yellow",
+      "Metro"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "grounded_ack",
+   "must": "Two morning options; can't book.",
+   "must_not": "Claim it's booked.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Delta",
+      "American",
+      "7",
+      "8:30",
+      "which"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "booked you",
+     "you're booked",
+     "booking is confirmed",
+     "ticketed"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Claims it booked a flight.",
+  "Mixes hotel and flight results.",
+  "Quotes the Saturday Spirit fare."
+ ]
+}

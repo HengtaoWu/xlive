@@ -1,0 +1,321 @@
+{
+ "episode_id": "en_t12_channel_sales_retry",
+ "template_id": "T12_backend_failure_retry_status",
+ "split": "all",
+ "lang": "en",
+ "domain": "data_analysis",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S8_needs_input_failure",
+  "S5_status_query",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "September revenue by channel; the first run times out; the user asks for a retry; status asked during the retry.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-10-12T14:20:00-04:00",
+   "weekday": "Monday",
+   "data_sources": [
+    "sales warehouse: by month, channel, status"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "TikTok Shop": [
+     "TikTok",
+     "tiktok shop"
+    ],
+    "website": [
+     "DTC",
+     "our site",
+     "direct"
+    ]
+   },
+   "sales_rows": [
+    {
+     "month": "2026-09",
+     "region": "US",
+     "channel": "Amazon",
+     "status": "completed",
+     "orders": 4100,
+     "revenue": 520000
+    },
+    {
+     "month": "2026-09",
+     "region": "US",
+     "channel": "TikTok Shop",
+     "status": "completed",
+     "orders": 3600,
+     "revenue": 610000
+    },
+    {
+     "month": "2026-09",
+     "region": "US",
+     "channel": "website",
+     "status": "completed",
+     "orders": 5200,
+     "revenue": 380000
+    },
+    {
+     "month": "2026-09",
+     "region": "US",
+     "channel": "retail stores",
+     "status": "completed",
+     "orders": 1500,
+     "revenue": 290000
+    },
+    {
+     "month": "2026-08",
+     "region": "US",
+     "channel": "Amazon",
+     "status": "completed",
+     "orders": 4800,
+     "revenue": 650000
+    },
+    {
+     "month": "2026-08",
+     "region": "US",
+     "channel": "TikTok Shop",
+     "status": "completed",
+     "orders": 3000,
+     "revenue": 480000
+    },
+    {
+     "month": "2026-08",
+     "region": "US",
+     "channel": "website",
+     "status": "completed",
+     "orders": 4300,
+     "revenue": 300000
+    },
+    {
+     "month": "2026-08",
+     "region": "US",
+     "channel": "retail stores",
+     "status": "completed",
+     "orders": 1400,
+     "revenue": 270000
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "analyze_sales": {
+    "duration_s": 18,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 18
+    },
+    "fail_first_n": 1,
+    "fail_error": "Warehouse query timed out upstream; the summary was not produced."
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Pull September revenue by channel for me, highest to lowest.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Side question: what does DTC actually mean? People keep saying it in meetings.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Huh? Okay, run it again.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_sales",
+    "event": "task_failed",
+    "gap": 1,
+    "max_wait": 25,
+    "fallback_s": 40
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Is it done now?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Ugh, the quarterly target is stressing me out.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "tired"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_sales",
+   "summary": "Sep revenue: TikTok Shop 610k > Amazon 520k > website 380k > retail 290k. By orders the website leads; August puts Amazon first (traps).",
+   "match": {
+    "tool": "analyze_sales"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "month": "2026-09",
+      "group_by": "channel",
+      "metric": "revenue"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "retry",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "month": "2026-09",
+      "group_by": "channel",
+      "metric": "revenue"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "month": "2026-09",
+     "group_by": "channel",
+     "metric": "revenue",
+     "exclude_refunded": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "TikTok"
+     ],
+     [
+      "610"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ],
+   "problem_report": {
+    "event": "task_failed",
+    "key_facts": [
+     [
+      "timed out",
+      "failed",
+      "didn't work",
+      "didn't go through",
+      "error"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Direct-to-consumer via own channels.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "direct"
+     ],
+     [
+      "own",
+      "website",
+      "middle"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "problem_ack",
+   "must": "Actually re-run.",
+   "must_not": "Only agree verbally.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "again",
+      "re-run",
+      "rerun"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "Truthful: still running.",
+   "must_not": "Invent numbers.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "not yet",
+      "still"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "tiktok",
+     "610",
+     "it's done"
+    ]
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "chitchat_no_action",
+   "must": "Brief empathy.",
+   "must_not": "Cancel or restart tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "understandable",
+      "a lot",
+      "stress"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Hides the failure or fakes results.",
+  "Doesn't actually re-run.",
+  "Invents results during the retry."
+ ]
+}

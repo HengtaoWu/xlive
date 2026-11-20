@@ -1,0 +1,235 @@
+{
+ "episode_id": "en_t18a_venue_budget_unknown",
+ "template_id": "T18_question_depends_on_pending",
+ "split": "all",
+ "lang": "en",
+ "domain": "events_planning",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "no_fabrication_pending",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup",
+  "proactive_delivery"
+ ],
+ "user_goal": "Venue quotes vs a 12k budget; the user asks whether any fit before quotes are in (must not guess), then again after.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-10-19T14:00:00-04:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Lakeside": [
+     "Lakeside Pavilion"
+    ],
+    "Grand Oak": [
+     "Grand Oak Hall",
+     "the Grand Oak"
+    ],
+    "Harbor Hall": [
+     "Harbor",
+     "Harbour Hall"
+    ]
+   },
+   "vendors": [
+    {
+     "name": "Lakeside",
+     "base_price": 10400,
+     "install_fee": 800,
+     "install_fee_ready_s": 0
+    },
+    {
+     "name": "Grand Oak",
+     "base_price": 11500,
+     "install_fee": 1200,
+     "install_fee_ready_s": 0
+    },
+    {
+     "name": "Harbor Hall",
+     "base_price": 9800,
+     "install_fee": 2600,
+     "install_fee_ready_s": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "compare_quotes": {
+    "duration_s": 42,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Get quotes from Lakeside, Grand Oak and Harbor Hall for the holiday party, all in, and check them against our twelve thousand budget.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Do you think any of them will come in under budget?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "How many people usually show up when you invite eighty?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay, so does anything fit?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_q",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_q",
+   "summary": "Within 12k: only Lakeside 11,200. Harbor 12,400 (low base trap), Grand Oak 12,700.",
+   "match": {
+    "tool": "compare_quotes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "vendors": {
+       "$contains": [
+        "Lakeside",
+        "Grand Oak",
+        "Harbor Hall"
+       ]
+      },
+      "include_install_fee": {
+       "$optional": true
+      },
+      "budget": 12000
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "vendors": {
+      "$contains": [
+       "Lakeside",
+       "Grand Oak",
+       "Harbor Hall"
+      ]
+     },
+     "budget": 12000,
+     "include_install_fee": {
+      "$optional": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Lakeside"
+     ],
+     [
+      "11,200",
+      "11200"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "status_answer",
+   "must": "Admit it's unknown; no guessing.",
+   "must_not": "Guess a venue or a number.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "yet",
+      "not back",
+      "don't know",
+      "can't tell"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "lakeside fits",
+     "harbor hall fits",
+     "grand oak fits",
+     "all of them fit"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "~70–85% turnout.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "percent",
+      "%",
+      "sixty"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "grounded_answer",
+   "must": "Only Lakeside fits.",
+   "must_not": "Say Harbor Hall fits because of its low base.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Lakeside"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "harbor hall fits",
+     "harbor hall is under"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Guesses before the quotes arrive.",
+  "Says Harbor Hall fits."
+ ]
+}

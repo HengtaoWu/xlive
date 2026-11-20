@@ -1,0 +1,355 @@
+{
+ "episode_id": "en_t08_locked_doc_and_checkout_logs",
+ "template_id": "T08_backend_failure_needs_input",
+ "split": "all",
+ "lang": "en",
+ "domain": "office_docs+code_debugging",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S8_needs_input_failure",
+  "S5_status_query",
+  "S2_independent_second_task"
+ ],
+ "user_goal": "Triage checkout-service logs for hanging payments, and get minutes from this morning's design review doc (the first file is locked).",
+ "environment": {
+  "agent_context": {
+   "now": "2026-02-23T11:05:00+00:00",
+   "weekday": "Monday",
+   "services": [
+    "checkout-service",
+    "payment-gateway",
+    "inventory-service"
+   ],
+   "user_files": [
+    "design-review-0223.docx",
+    "design-review-0223-export.pdf",
+    "q1-roadmap.pptx"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "checkout-service": [
+     "checkout",
+     "checkout service"
+    ],
+    "design-review-0223.docx": [
+     "design review doc",
+     "design-review-0223"
+    ]
+   },
+   "logs": {
+    "checkout-service": {
+     "last_1h": {
+      "window": "10:05-11:05",
+      "total_errors": 134,
+      "groups": [
+       {
+        "error": "TimeoutError calling payment-gateway (p95 12.4s, timeout 10s)",
+        "count": 128,
+        "peak": "10:40-11:00"
+       },
+       {
+        "error": "Redis connection reset",
+        "count": 6,
+        "peak": "10:22"
+       }
+      ],
+      "note": "No database errors in window."
+     }
+    }
+   },
+   "files": {
+    "design-review-0223.docx": {
+     "readable": false,
+     "error": "The file is password-protected and could not be opened."
+    },
+    "design-review-0223-export.pdf": {
+     "readable": true,
+     "points": [
+      "Ship the new onboarding flow behind a feature flag on March 9.",
+      "Priya owns the accessibility audit; due before launch.",
+      "Open question: pricing page copy needs legal review."
+     ]
+    }
+   }
+  },
+  "tool_behaviors": {
+   "triage_logs": {
+    "duration_s": 55,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "summarize_document": {
+    "duration_s": 9,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you go through the checkout service logs from the last hour? Customers are saying payments are hanging.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Also, summarize the notes from this morning's design review. The file's called design-review-0223.docx.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1,
+    "max_wait": 8
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is the checkout thing looking like a database problem, or something else?",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u2",
+    "delay": 9
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Oh, sorry, that one's locked. Use the PDF export instead, design-review-0223-export.pdf. Same notes.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_minutes",
+    "event": "task_needs_input",
+    "gap": 1,
+    "max_wait": 30,
+    "fallback_s": 45
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Thanks. Anything I should tell the on-call engineer right now?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_logs",
+    "event": "task_completed",
+    "delay": 12,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_logs",
+   "summary": "triage_logs checkout-service last_1h → 128 timeouts calling payment-gateway (p95 12.4s > 10s timeout); 6 Redis resets; no DB errors.",
+   "match": {
+    "tool": "triage_logs"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "checkout-service",
+      "time_window": "last_1h",
+      "min_level": {
+       "$optional": {
+        "$oneof": [
+         "warn",
+         "error"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "checkout-service",
+     "time_window": "last_1h",
+     "min_level": {
+      "$optional": {
+       "$oneof": [
+        "warn",
+        "error"
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "payment-gateway",
+      "payment gateway"
+     ],
+     [
+      "timeout",
+      "timing out"
+     ],
+     [
+      "128"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u3",
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_minutes",
+   "summary": "summarize_document: first file is password-protected → task_needs_input; user supplies the PDF export; task must be updated (or resubmitted) with the new file and the summary delivered.",
+   "match": {
+    "tool": "summarize_document"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "file": "design-review-0223.docx"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "file"
+     ],
+     "constraints": {
+      "file": "design-review-0223-export.pdf"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "file": "design-review-0223-export.pdf",
+     "focus": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "March 9"
+     ],
+     [
+      "feature flag"
+     ],
+     [
+      "Priya"
+     ],
+     [
+      "accessibility"
+     ],
+     [
+      "legal"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "problem_report": {
+    "event": "task_needs_input",
+    "key_facts": [
+     [
+      "password",
+      "locked",
+      "can't open",
+      "couldn't open",
+      "could not be opened",
+      "unable to open",
+      "protected"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "status_answer",
+   "must": "Say the log scan is still running and there is no conclusion yet (true backend state), without guessing a root cause as fact. If the document problem has already arrived, mention it briefly and ask for another file at a natural point.",
+   "must_not": "State it is (or isn't) a database problem as a finding before the logs return.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "still",
+      "not yet",
+      "no conclusion",
+      "haven't",
+      "running"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "it's a database problem",
+     "the database is the problem",
+     "it's the database"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Acknowledge and re-run the summary on the PDF export.",
+   "must_not": "Only acknowledge without updating the task.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "pdf",
+      "export"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "grounded_answer",
+   "must": "Advise based on log findings: timeouts calling payment-gateway (p95 ~12.4s vs 10s timeout), not the database; e.g. check payment-gateway health / timeout settings.",
+   "must_not": "Blame the database; invent numbers.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "payment-gateway",
+      "payment gateway"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "database problem",
+     "it's the database",
+     "database is the cause"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Claims the meeting summary was produced from the locked file, or invents meeting content.",
+  "Never tells the user the file could not be opened, or repeats the error several times.",
+  "Lets the document problem stall or cancel the log triage.",
+  "Speculates 'database problem' as a finding before the logs return."
+ ]
+}

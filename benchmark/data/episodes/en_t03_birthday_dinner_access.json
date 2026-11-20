@@ -1,0 +1,347 @@
+{
+ "episode_id": "en_t03_birthday_dinner_access",
+ "template_id": "T03_incremental_constraint",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S3_incremental_requirements",
+  "clarify_before_start",
+  "chitchat_no_action",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "Book-ready restaurant options for a Saturday dinner for six downtown; one guest uses a wheelchair (mentioned after the search started).",
+ "environment": {
+  "agent_context": {
+   "now": "2026-05-14T16:20:00-07:00",
+   "weekday": "Thursday",
+   "user_city": "Seattle"
+  },
+  "materials": {
+   "aliases": {
+    "Downtown": [
+     "downtown",
+     "city center",
+     "city centre",
+     "downtown Seattle",
+     "central"
+    ]
+   },
+   "restaurants": [
+    {
+     "name": "Lantern Room",
+     "area": "Downtown",
+     "cuisine": "modern Asian",
+     "price_pp": 65,
+     "rating": 4.8,
+     "max_party": 8,
+     "wheelchair_accessible": false,
+     "note": "second floor, stairs only",
+     "slots": {
+      "2026-05-16": [
+       "18:30",
+       "19:00",
+       "20:30"
+      ]
+     }
+    },
+    {
+     "name": "Harbor Table",
+     "area": "Downtown",
+     "cuisine": "seafood",
+     "price_pp": 58,
+     "rating": 4.6,
+     "max_party": 10,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-05-16": [
+       "18:00",
+       "19:30"
+      ]
+     }
+    },
+    {
+     "name": "Olive & Ash",
+     "area": "Downtown",
+     "cuisine": "Mediterranean",
+     "price_pp": 44,
+     "rating": 4.4,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-05-16": [
+       "19:00"
+      ]
+     }
+    },
+    {
+     "name": "Copper Pot",
+     "area": "Downtown",
+     "cuisine": "American",
+     "price_pp": 39,
+     "rating": 4.5,
+     "max_party": 4,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-05-16": [
+       "18:00",
+       "19:00"
+      ]
+     }
+    },
+    {
+     "name": "Fir & Fennel",
+     "area": "Capitol Hill",
+     "cuisine": "Pacific Northwest",
+     "price_pp": 52,
+     "rating": 4.9,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-05-16": [
+       "19:00"
+      ]
+     }
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_restaurants": {
+    "duration_s": 42,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you help me find somewhere for a dinner this weekend?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Six of us, somewhere downtown, Saturday evening. Go ahead and start looking.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 0.8,
+    "max_wait": 8
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "It's for my sister's thirtieth. She's had a rough few months at work, so I really want it to feel a bit special.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "warm"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Oh, wait. One of our friends uses a wheelchair.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1,
+    "max_wait": 8
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Do you think a set menu or ordering à la carte works better for a group of six?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_restaurant",
+   "summary": "Restaurant search downtown, party 6, Saturday 2026-05-16, wheelchair_accessible=true (added mid-run). Correct picks: Harbor Table / Olive & Ash. Lantern Room (stairs) and Copper Pot (max 4) must not be recommended.",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Downtown",
+      "party_size": 6,
+      "date": "2026-05-16",
+      "time": {
+       "$optional": {
+        "$oneof": [
+         "17:00",
+         "17:30",
+         "18:00",
+         "18:30",
+         "19:00"
+        ]
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "wheelchair_accessible"
+     ],
+     "constraints": {
+      "area": "Downtown",
+      "party_size": 6,
+      "date": "2026-05-16",
+      "time": {
+       "$optional": {
+        "$oneof": [
+         "17:00",
+         "17:30",
+         "18:00",
+         "18:30",
+         "19:00"
+        ]
+       }
+      },
+      "wheelchair_accessible": true
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "Downtown",
+     "party_size": 6,
+     "date": "2026-05-16",
+     "wheelchair_accessible": true,
+     "time": {
+      "$optional": {
+       "$oneof": [
+        "17:00",
+        "17:30",
+        "18:00",
+        "18:30",
+        "19:00"
+       ]
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Harbor Table"
+     ],
+     [
+      "Olive & Ash",
+      "Olive and Ash"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u1",
+   "type": "clarification",
+   "must": "Ask for the missing essentials (party size and/or area, which day) before searching.",
+   "must_not": "Claim to have started or finished a search with invented details.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "how many",
+      "where",
+      "area",
+      "which day",
+      "saturday or sunday"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "chitchat_no_action",
+   "must": "Respond warmly and briefly; may offer to keep 'special' in mind when presenting options.",
+   "must_not": "Change the search or start another task.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "sister",
+      "special",
+      "lovely",
+      "celebrat",
+      "birthday",
+      "thirtieth"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Acknowledge and make wheelchair accessibility part of the search (the backend task must actually be updated).",
+   "must_not": "Only say 'noted' while the search continues with the old criteria.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "wheelchair",
+      "accessib",
+      "step-free"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "knowledge_answer",
+   "must": "Give a reasoned opinion (e.g. set menu simplifies a birthday group and splitting the bill; à la carte suits varied tastes).",
+   "must_not": "Only report search status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "set menu",
+      "à la carte",
+      "a la carte",
+      "share",
+      "family-style"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Starts searching after u1 with guessed party size/area.",
+  "Treats u3 (chit-chat) as a requirement change and amends the task.",
+  "Acknowledges the wheelchair but never updates the backend task (result then still ranks Lantern Room first).",
+  "Recommends Lantern Room (stairs only) or Copper Pot (max 4 guests)."
+ ]
+}

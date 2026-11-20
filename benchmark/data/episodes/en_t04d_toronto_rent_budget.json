@@ -1,0 +1,260 @@
+{
+ "episode_id": "en_t04d_toronto_rent_budget",
+ "template_id": "T04_modify_preserve_constraints",
+ "split": "all",
+ "lang": "en",
+ "domain": "housing",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Toronto two-bedroom under 3,000 within a 30-minute commute; budget raised to 3,500, commute limit unchanged.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-15T21:00:00-04:00",
+   "weekday": "Monday",
+   "currency": "CAD"
+  },
+  "materials": {
+   "aliases": {
+    "Toronto": [
+     "the city",
+     "TO"
+    ]
+   },
+   "rentals": [
+    {
+     "name": "Scarborough Townhouse",
+     "city": "Toronto",
+     "rent": 2700,
+     "bedrooms": 2,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 45
+    },
+    {
+     "name": "Etobicoke Two-Bed",
+     "city": "Toronto",
+     "rent": 2850,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 38
+    },
+    {
+     "name": "Liberty Village Condo",
+     "city": "Toronto",
+     "rent": 3300,
+     "bedrooms": 2,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 20
+    },
+    {
+     "name": "Leslieville Flat",
+     "city": "Toronto",
+     "rent": 3450,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": true,
+     "commute_min": 28
+    },
+    {
+     "name": "King West Loft",
+     "city": "Toronto",
+     "rent": 3800,
+     "bedrooms": 2,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 15
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_rentals": {
+    "duration_s": 44,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Look for two-bedrooms in Toronto under three thousand, within half an hour of my office.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Can a landlord in Ontario ask for a damage deposit?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "I can stretch to thirty-five hundred, but the commute still has to be under thirty minutes.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Apartment hunting is eating all my weekends.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "tired"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rent",
+   "summary": "≤3,500 & ≤30 min: Liberty Village 3,300, Leslieville 3,450. Dropping the commute filter puts Scarborough 2,700 first (trap).",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Toronto",
+      "bedrooms": 2,
+      "max_rent": 3000,
+      "max_commute_min": {
+       "$range": [
+        25,
+        30
+       ]
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "max_rent"
+     ],
+     "constraints": {
+      "city": "Toronto",
+      "bedrooms": 2,
+      "max_rent": 3500,
+      "max_commute_min": {
+       "$range": [
+        25,
+        30
+       ]
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Toronto",
+     "bedrooms": 2,
+     "max_rent": 3500,
+     "max_commute_min": {
+      "$range": [
+       25,
+       30
+      ]
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Liberty Village"
+     ],
+     [
+      "3,300",
+      "3300"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Only last month's rent deposit.",
+   "must_not": "Only say it's searching.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "last month"
+     ],
+     [
+      "damage"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Raise budget; keep the commute limit.",
+   "must_not": "Drop the commute filter; agree verbally only.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "3,500",
+      "3500",
+      "thirty-five hundred"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief empathy.",
+   "must_not": "Modify or restart.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "weekend",
+      "filter",
+      "really does"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Drops the commute filter and recommends Scarborough.",
+  "Agrees verbally without updating."
+ ]
+}

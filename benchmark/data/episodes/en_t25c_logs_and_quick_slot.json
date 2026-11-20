@@ -1,0 +1,292 @@
+{
+ "episode_id": "en_t25c_logs_and_quick_slot",
+ "template_id": "T25_quick_and_long_followup",
+ "split": "all",
+ "lang": "en",
+ "domain": "code_debugging",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "result_grounded_followup",
+  "proactive_delivery"
+ ],
+ "user_goal": "Long 7-day log scan + quick 30-minute slot with Sam today; follow-up about the slot.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-01-19T10:00:00-08:00",
+   "weekday": "Monday",
+   "services": [
+    "search-api"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "search-api": [
+     "search",
+     "search api"
+    ],
+    "Sam": [
+     "Sam Ortiz"
+    ]
+   },
+   "logs": {
+    "search-api": {
+     "last_7d": {
+      "window": "7d",
+      "total_errors": 1500,
+      "groups": [
+       {
+        "error": "Elasticsearch query timeout",
+        "count": 1320,
+        "peak": "weekdays 9-11am"
+       },
+       {
+        "error": "bad request: empty query",
+        "count": 180,
+        "peak": "spread"
+       }
+      ]
+     }
+    }
+   },
+   "calendars": {
+    "2026-01-19": {
+     "me": [
+      [
+       "10:00",
+       "11:00"
+      ],
+      [
+       "13:00",
+       "14:30"
+      ]
+     ],
+     "Sam": [
+      [
+       "11:00",
+       "12:00"
+      ],
+      [
+       "15:00",
+       "16:00"
+      ]
+     ]
+    }
+   }
+  },
+  "tool_behaviors": {
+   "triage_logs": {
+    "duration_s": 80,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 30
+    }
+   },
+   "find_meeting_slots": {
+    "duration_s": 10,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 8
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Scan search-api errors for the past week.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And find thirty minutes with Sam today to talk about it.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is the noon one before or after my lunch?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_m",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 40
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Ha, I'll take two thirty.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_l",
+   "summary": "1,320 ES timeouts weekday mornings.",
+   "match": {
+    "tool": "triage_logs"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "search-api",
+      "time_window": "last_7d",
+      "min_level": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "search-api",
+     "time_window": "last_7d",
+     "min_level": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Elasticsearch",
+      "timeout"
+     ],
+     [
+      "9",
+      "morning"
+     ]
+    ],
+    "min_facts": 2
+   }
+  },
+  {
+   "goal_id": "g_m",
+   "summary": "Today: 12–1, 2:30–3, 4–6.",
+   "match": {
+    "tool": "find_meeting_slots"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "attendees": {
+       "$contains": [
+        "Sam"
+       ]
+      },
+      "date": "2026-01-19",
+      "duration_min": 30,
+      "part_of_day": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "attendees": {
+      "$contains": [
+       "Sam"
+      ]
+     },
+     "date": "2026-01-19",
+     "duration_min": 30,
+     "part_of_day": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "12",
+      "noon"
+     ],
+     [
+      "2:30",
+      "14:30"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u3"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "grounded_answer",
+   "must": "Offer 2:30 as the alternative.",
+   "must_not": "Invent a lunch block.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "2:30",
+      "two thirty"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "eat",
+      "lunch",
+      "good"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Waits for the log scan before giving slots.",
+  "Invents slots."
+ ]
+}

@@ -1,0 +1,293 @@
+{
+ "episode_id": "en_t28c_hotel_near_landing_airport",
+ "template_id": "T28_dependent_task",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "dependent_request",
+  "result_grounded_followup",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "The cheapest Chicago→New York flight lands late at JFK; the hotel must be near the landing airport (JFK, not LaGuardia).",
+ "environment": {
+  "agent_context": {
+   "now": "2026-11-16T09:00:00-06:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Chicago": [
+     "ORD",
+     "O'Hare"
+    ],
+    "New York": [
+     "NYC"
+    ],
+    "JFK": [
+     "JFK Airport",
+     "Kennedy"
+    ],
+    "LaGuardia": [
+     "LGA",
+     "LaGuardia Airport"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "B6 906",
+     "airline": "JetBlue",
+     "origin": "Chicago",
+     "destination": "New York",
+     "date": "2026-11-19",
+     "depart": "20:00",
+     "arrive": "23:10 at JFK",
+     "price": 109,
+     "stops": 0
+    },
+    {
+     "flight_no": "UA 1430",
+     "airline": "United",
+     "origin": "Chicago",
+     "destination": "New York",
+     "date": "2026-11-19",
+     "depart": "18:00",
+     "arrive": "21:05 at LaGuardia",
+     "price": 179,
+     "stops": 0
+    }
+   ],
+   "hotels": [
+    {
+     "name": "TWA Hotel",
+     "city": "New York",
+     "area": "JFK",
+     "price_per_night": 260,
+     "rating": 4.6,
+     "walk_min": 5
+    },
+    {
+     "name": "Courtyard JFK",
+     "city": "New York",
+     "area": "JFK",
+     "price_per_night": 190,
+     "rating": 4.2,
+     "walk_min": 12
+    },
+    {
+     "name": "Marriott LaGuardia",
+     "city": "New York",
+     "area": "LaGuardia",
+     "price_per_night": 210,
+     "rating": 4.4,
+     "walk_min": 6
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   },
+   "search_hotels": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find flights from Chicago to New York on Thursday. Cheapest possible.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Are evening flights out of O'Hare usually delayed?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "I'll take the cheapest. It lands late, so find me a hotel near whatever airport it lands at, one night.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_fl",
+    "event": "task_completed",
+    "delay": 6,
+    "max_wait": 50
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Do airport hotels usually have shuttles?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "Cheapest: JetBlue 8pm → 11:10pm JFK, $109.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Chicago",
+      "destination": "New York",
+      "date": "2026-11-19"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Chicago",
+     "destination": "New York",
+     "date": "2026-11-19"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "JetBlue",
+      "B6 906"
+     ],
+     [
+      "109"
+     ],
+     [
+      "JFK"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u3"
+   ]
+  },
+  {
+   "goal_id": "g_ho",
+   "summary": "Must be JFK; LaGuardia is the trap.",
+   "match": {
+    "tool": "search_hotels"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "New York",
+      "check_in": "2026-11-19",
+      "check_out": "2026-11-20",
+      "area": "JFK"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "New York",
+     "check_in": "2026-11-19",
+     "check_out": "2026-11-20",
+     "area": "JFK"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "TWA",
+      "Courtyard"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Evening flights more delay-prone.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "delay",
+      "late"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "dependent_request",
+   "must": "Derive JFK from the result.",
+   "must_not": "Search LaGuardia.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "JFK"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "near laguardia"
+    ]
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Shuttles; confirm late.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "shuttle"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Searches near LaGuardia."
+ ]
+}

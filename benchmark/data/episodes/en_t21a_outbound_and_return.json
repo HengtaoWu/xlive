@@ -1,0 +1,313 @@
+{
+ "episode_id": "en_t21a_outbound_and_return",
+ "template_id": "T21_same_tool_two_tasks",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S4_modify_keep_unchanged",
+  "same_tool_disambiguation",
+  "proactive_delivery"
+ ],
+ "user_goal": "Outbound NYC→Denver and return Denver→NYC as two searches; the user moves only the return to Monday.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-01T09:00:00-04:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "New York": [
+     "NYC",
+     "JFK",
+     "LGA",
+     "Newark"
+    ],
+    "Denver": [
+     "DEN"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "UA 455",
+     "airline": "United",
+     "origin": "New York",
+     "destination": "Denver",
+     "date": "2026-06-12",
+     "depart": "07:00",
+     "price": 214,
+     "stops": 0
+    },
+    {
+     "flight_no": "F9 600",
+     "airline": "Frontier",
+     "origin": "New York",
+     "destination": "Denver",
+     "date": "2026-06-12",
+     "depart": "13:20",
+     "price": 129,
+     "stops": 0
+    },
+    {
+     "flight_no": "DL 1730",
+     "airline": "Delta",
+     "origin": "Denver",
+     "destination": "New York",
+     "date": "2026-06-14",
+     "depart": "16:00",
+     "price": 189,
+     "stops": 0
+    },
+    {
+     "flight_no": "B6 98",
+     "airline": "JetBlue",
+     "origin": "Denver",
+     "destination": "New York",
+     "date": "2026-06-15",
+     "depart": "12:10",
+     "price": 142,
+     "stops": 0
+    },
+    {
+     "flight_no": "UA 1980",
+     "airline": "United",
+     "origin": "Denver",
+     "destination": "New York",
+     "date": "2026-06-15",
+     "depart": "18:45",
+     "price": 205,
+     "stops": 0
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 44,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me a flight from New York to Denver on Friday the twelfth.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And a separate one coming back Sunday the fourteenth.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Actually, make the return Monday. The outbound's fine.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Is Denver's altitude something I should worry about?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "So what's the total for both ways?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_ret",
+    "event": "task_completed",
+    "delay": 4,
+    "max_wait": 70
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_out",
+   "summary": "Out Fri: Frontier 129, United 214.",
+   "match": {
+    "tool": "search_flights",
+    "args": {
+     "origin": "New York"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "New York",
+      "destination": "Denver",
+      "date": "2026-06-12"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "New York",
+     "destination": "Denver",
+     "date": "2026-06-12"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Frontier",
+      "129"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_ret",
+   "summary": "Return Mon: JetBlue 142, United 205. Sunday Delta 189 is the unmodified trap.",
+   "match": {
+    "tool": "search_flights",
+    "args": {
+     "origin": "Denver"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Denver",
+      "destination": "New York",
+      "date": "2026-06-14"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "date"
+     ],
+     "constraints": {
+      "origin": "Denver",
+      "destination": "New York",
+      "date": "2026-06-15"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Denver",
+     "destination": "New York",
+     "date": "2026-06-15"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "JetBlue",
+      "142"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Modify ONLY the return task.",
+   "must_not": "Change the outbound date.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "return"
+     ],
+     [
+      "Monday",
+      "15"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Hydrate; mild symptoms.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "water",
+      "hydrat",
+      "headache"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "grounded_answer",
+   "must": "129 + 142 = 271.",
+   "must_not": "Use Sunday's Delta fare.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "271"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "189",
+     "318"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Changes the outbound date too.",
+  "Quotes the Sunday Delta return."
+ ]
+}

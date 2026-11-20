@@ -1,0 +1,257 @@
+{
+ "episode_id": "en_t16a_market_report_status",
+ "template_id": "T16_double_status_stages",
+ "split": "all",
+ "lang": "en",
+ "domain": "office_docs",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S5_status_query",
+  "status_progression",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Long market-sizing report; user asks status twice and the answer must reflect real stage progression.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-02-09T09:30:00-08:00",
+   "weekday": "Monday",
+   "data_sources": [
+    "market database",
+    "analyst notes"
+   ]
+  },
+  "materials": {
+   "report": {
+    "title": "EV Charging Market Sizing",
+    "sections": [
+     "TAM: $38B by 2030",
+     "SAM (US home chargers): $6.2B",
+     "Top risk: utility rebate changes"
+    ],
+    "headline": "US home EV charging is a $6.2B serviceable market; rebate policy is the main risk."
+   }
+  },
+  "tool_behaviors": {
+   "generate_report": {
+    "duration_s": 90,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 30
+    },
+    "stages": [
+     {
+      "at_frac": 0,
+      "label": "gathering market data"
+     },
+     {
+      "at_frac": 0.25,
+      "label": "sizing the total market"
+     },
+     {
+      "at_frac": 0.5,
+      "label": "sizing the US home segment"
+     },
+     {
+      "at_frac": 0.75,
+      "label": "writing risks"
+     }
+    ]
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Draft a market-sizing report on EV home charging.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "What's TAM versus SAM again? I always mix them up.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "How far along is it?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay, I'll grab a coffee.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "I'm back. Where is it now?",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u4",
+    "delay": 22
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rep",
+   "summary": "TAM $38B; SAM $6.2B; rebate risk.",
+   "match": {
+    "tool": "generate_report"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": {
+       "$any": true
+      },
+      "sections": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "period": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "topic": {
+      "$any": true
+     },
+     "sections": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "period": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "6.2"
+     ],
+     [
+      "38"
+     ],
+     [
+      "rebate"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "TAM = total; SAM = serviceable slice.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "total"
+     ],
+     [
+      "serv"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "status_answer",
+   "must": "Truthful stage.",
+   "must_not": "Invent a percentage.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "gathering",
+      "data",
+      "sizing",
+      "first"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Short ack.",
+   "must_not": "Long reply.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "sounds good",
+      "enjoy",
+      "sure"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "status_answer",
+   "must": "Report the later stage (progress since the first check).",
+   "must_not": "Repeat the first answer verbatim; claim done.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "home",
+      "segment",
+      "third",
+      "risks"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Gives the same stage both times.",
+  "Makes up percentages.",
+  "Claims it's done early."
+ ]
+}

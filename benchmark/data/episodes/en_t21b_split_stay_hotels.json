@@ -1,0 +1,262 @@
+{
+ "episode_id": "en_t21b_split_stay_hotels",
+ "template_id": "T21_same_tool_two_tasks",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S4_modify_keep_unchanged",
+  "same_tool_disambiguation",
+  "proactive_delivery"
+ ],
+ "user_goal": "Two hotel searches (Rome then Florence); a price cap is added to Florence only.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-08-24T10:00:00+02:00",
+   "weekday": "Monday",
+   "currency": "EUR"
+  },
+  "materials": {
+   "aliases": {
+    "Rome": [
+     "Roma"
+    ],
+    "Florence": [
+     "Firenze"
+    ]
+   },
+   "hotels": [
+    {
+     "name": "Hotel Artemide",
+     "city": "Rome",
+     "area": "Monti",
+     "price_per_night": 210,
+     "rating": 4.7,
+     "walk_min": 3
+    },
+    {
+     "name": "Hotel Santa Maria",
+     "city": "Rome",
+     "area": "Trastevere",
+     "price_per_night": 240,
+     "rating": 4.8,
+     "walk_min": 15
+    },
+    {
+     "name": "Hotel Brunelleschi",
+     "city": "Florence",
+     "area": "Duomo",
+     "price_per_night": 320,
+     "rating": 4.8,
+     "walk_min": 8
+    },
+    {
+     "name": "Hotel Davanzati",
+     "city": "Florence",
+     "area": "Centro",
+     "price_per_night": 175,
+     "rating": 4.7,
+     "walk_min": 7
+    },
+    {
+     "name": "Hotel Bodoni",
+     "city": "Florence",
+     "area": "Santa Croce",
+     "price_per_night": 140,
+     "rating": 4.3,
+     "walk_min": 12
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_hotels": {
+    "duration_s": 46,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find hotels in Rome for September twenty-first to twenty-fourth.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Then Florence from the twenty-fourth to the twenty-sixth.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "For Florence, keep it under two hundred a night. Rome can stay as is.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "What's the fastest way from Rome to Florence?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rome",
+   "summary": "Rome: Santa Maria 4.8 €240, Artemide 4.7 €210.",
+   "match": {
+    "tool": "search_hotels",
+    "args": {
+     "city": "Rome"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Rome",
+      "check_in": "2026-09-21",
+      "check_out": "2026-09-24"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Rome",
+     "check_in": "2026-09-21",
+     "check_out": "2026-09-24"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Santa Maria",
+      "Artemide"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_flo",
+   "summary": "Florence ≤€200: Davanzati 4.7 €175. Brunelleschi €320 = cap ignored.",
+   "match": {
+    "tool": "search_hotels",
+    "args": {
+     "city": "Florence"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Florence",
+      "check_in": "2026-09-24",
+      "check_out": "2026-09-26"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "max_price_per_night"
+     ],
+     "constraints": {
+      "city": "Florence",
+      "check_in": "2026-09-24",
+      "check_out": "2026-09-26",
+      "max_price_per_night": 200
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Florence",
+     "check_in": "2026-09-24",
+     "check_out": "2026-09-26",
+     "max_price_per_night": 200
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Davanzati"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Cap only the Florence task.",
+   "must_not": "Cap Rome too.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Florence"
+     ],
+     [
+      "200"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "High-speed train ~1.5 h.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "train"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Caps Rome as well.",
+  "Suggests Brunelleschi in Florence."
+ ]
+}

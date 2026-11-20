@@ -1,0 +1,278 @@
+{
+ "episode_id": "en_t03c_birthday_dessert_nuts",
+ "template_id": "T03_incremental_constraint",
+ "split": "all",
+ "lang": "en",
+ "domain": "cooking",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S3_incremental_requirements",
+  "clarify_before_start",
+  "chitchat_no_action",
+  "S1_related_qa_during_wait"
+ ],
+ "user_goal": "Dessert with chocolate and raspberries within an hour; a nut allergy is mentioned after the search starts.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-05-18T15:00:00+01:00",
+   "weekday": "Monday"
+  },
+  "materials": {
+   "recipes": [
+    {
+     "name": "Chocolate Raspberry Brownies (with walnuts)",
+     "ingredients": [
+      "chocolate",
+      "raspberries",
+      "walnuts",
+      "butter"
+     ],
+     "diet": [],
+     "time_min": 40
+    },
+    {
+     "name": "Flourless Chocolate Raspberry Torte",
+     "ingredients": [
+      "chocolate",
+      "raspberries",
+      "almond flour",
+      "eggs"
+     ],
+     "diet": [
+      "gluten_free"
+     ],
+     "time_min": 45
+    },
+    {
+     "name": "Raspberry Chocolate Cupcakes",
+     "ingredients": [
+      "chocolate",
+      "raspberries",
+      "flour",
+      "eggs"
+     ],
+     "diet": [
+      "nut_free"
+     ],
+     "time_min": 55
+    },
+    {
+     "name": "Chocolate Raspberry Tart",
+     "ingredients": [
+      "chocolate",
+      "raspberries",
+      "pastry"
+     ],
+     "diet": [
+      "nut_free"
+     ],
+     "time_min": 90
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "find_recipes": {
+    "duration_s": 38,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "I need a dessert for a birthday this weekend.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "I've got chocolate and raspberries, and about an hour. Go ahead.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "It's my niece's sixth. She's obsessed with unicorns right now.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "warm"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Oh wait, one of the kids has a nut allergy.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Should I bake it the day before, or the same morning?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_dessert",
+   "summary": "Nut-free within 60 min: Raspberry Chocolate Cupcakes only. Walnut brownies rank first without the allergy filter.",
+   "match": {
+    "tool": "find_recipes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "ingredients": {
+       "$contains": [
+        "chocolate",
+        "raspberries"
+       ]
+      },
+      "max_time_min": 60
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "diet"
+     ],
+     "constraints": {
+      "ingredients": {
+       "$contains": [
+        "chocolate",
+        "raspberries"
+       ]
+      },
+      "max_time_min": 60,
+      "diet": "nut_free"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "ingredients": {
+      "$contains": [
+       "chocolate",
+       "raspberries"
+      ]
+     },
+     "max_time_min": 60,
+     "diet": "nut_free"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "cupcake"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u1",
+   "type": "clarification",
+   "must": "Ask for ingredients / time before searching.",
+   "must_not": "Search with invented ingredients.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "ingredient",
+      "time",
+      "how long",
+      "what do you have"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "chitchat_no_action",
+   "must": "Warm, brief reply; no task change.",
+   "must_not": "Change the recipe search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "unicorn",
+      "sixth",
+      "sprinkle",
+      "cute"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Acknowledge and actually add nut-free.",
+   "must_not": "Only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "nut"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "knowledge_answer",
+   "must": "Practical timing advice.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "day before",
+      "same morning",
+      "frost",
+      "fresh"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Recommends the walnut brownies or the almond torte.",
+  "Never applies the nut-free filter."
+ ]
+}

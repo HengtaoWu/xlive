@@ -1,0 +1,314 @@
+{
+ "episode_id": "en_t05b_board_update",
+ "template_id": "T05_status_reference_selective_cancel",
+ "split": "all",
+ "lang": "en",
+ "domain": "office_docs",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S5_status_query",
+  "S5_selective_cancel",
+  "silence_request_not_cancel",
+  "proactive_delivery"
+ ],
+ "user_goal": "Draft the monthly board update; a parallel competitor-pricing scan is dropped; the update keeps running and is delivered.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-23T08:40:00-07:00",
+   "weekday": "Monday",
+   "data_sources": [
+    "finance dashboard",
+    "web research"
+   ]
+  },
+  "materials": {
+   "report": {
+    "title": "March Board Update",
+    "sections": [
+     "ARR: $4.1M, up 6% month over month",
+     "Burn: $310k/month, 19 months runway",
+     "Hiring: 3 of 5 roles filled"
+    ],
+    "headline": "ARR reached $4.1M (+6% MoM) with 19 months of runway."
+   },
+   "sources": [
+    {
+     "title": "SaaS pricing benchmarks 2026",
+     "publisher": "PriceLabs"
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "generate_report": {
+    "duration_s": 72,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 30
+    },
+    "stages": [
+     {
+      "at_frac": 0,
+      "label": "pulling finance data"
+     },
+     {
+      "at_frac": 0.25,
+      "label": "drafting ARR section"
+     },
+     {
+      "at_frac": 0.5,
+      "label": "drafting burn and runway"
+     },
+     {
+      "at_frac": 0.75,
+      "label": "drafting hiring section"
+     }
+    ]
+   },
+   "research_sources": {
+    "duration_s": 120,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 60
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Start drafting this month's board update: ARR, burn and runway, and hiring.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And can you also scan what competitors are charging these days?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Where are we on the board update?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Never mind the competitor stuff, I don't need it. Keep the board update going though.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Hold on, give me a second, someone's at my door.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "hurried"
+  },
+  {
+   "turn_id": "u6",
+   "text": "Sorry, I'm back.",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u5",
+    "delay": 16
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_report",
+   "summary": "Board update delivered after completion (ARR $4.1M, 19 months runway).",
+   "match": {
+    "tool": "generate_report"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": {
+       "$any": true
+      },
+      "sections": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "period": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "topic": {
+      "$any": true
+     },
+     "period": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "sections": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "4.1"
+     ],
+     [
+      "19 months",
+      "nineteen months"
+     ],
+     [
+      "6%",
+      "6 percent",
+      "six percent"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_research",
+   "summary": "Competitor pricing scan: started at u2, cancelled at u4; never reported.",
+   "match": {
+    "tool": "research_sources"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": "competitor SaaS pricing 2026",
+      "max_items": 5
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u4",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "status_answer",
+   "must": "Report the real stage of the board update.",
+   "must_not": "Invent a percentage or talk about the pricing scan.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "drafting",
+      "ARR",
+      "pulling",
+      "section"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "selective_cancel",
+   "must": "Stop only the pricing scan; confirm the update continues.",
+   "must_not": "Cancel the board update too.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "pricing",
+      "scan",
+      "competitor"
+     ],
+     [
+      "update",
+      "board"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "silence_request",
+   "must": "Stay quiet or give a very short ack; don't cancel anything.",
+   "must_not": "Keep talking; cancel tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "sure",
+      "okay"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u6",
+   "type": "resume",
+   "must": "Welcome back + current status or the finished update.",
+   "must_not": "Mention the pricing scan as running.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "welcome back",
+      "board update",
+      "update"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Cancels the board update.",
+  "Reports pricing results after cancellation.",
+  "Talks at length after 'give me a second'."
+ ]
+}

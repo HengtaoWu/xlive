@@ -1,0 +1,396 @@
+{
+ "episode_id": "en_t15c_lisbon_three_tasks",
+ "template_id": "T15_three_tasks_reference",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S5_status_query",
+  "S5_selective_cancel",
+  "ordinal_reference",
+  "proactive_delivery"
+ ],
+ "user_goal": "Lisbon: rental, dinner for 6, and shows in parallel; 'the second one' = dinner; the rental search is dropped.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-08T10:00:00+01:00",
+   "weekday": "Monday",
+   "currency": "EUR"
+  },
+  "materials": {
+   "aliases": {
+    "Lisbon": [
+     "Lisboa"
+    ],
+    "Alfama": [
+     "the Alfama"
+    ]
+   },
+   "rentals": [
+    {
+     "name": "Graça One-Bed",
+     "city": "Lisbon",
+     "rent": 1400,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": true,
+     "commute_min": 20
+    }
+   ],
+   "restaurants": [
+    {
+     "name": "Taberna da Rua das Flores",
+     "area": "Alfama",
+     "cuisine": "Portuguese",
+     "price_pp": 35,
+     "rating": 4.4,
+     "max_party": 10,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-06-13": [
+       "18:00",
+       "19:30"
+      ]
+     }
+    },
+    {
+     "name": "Clube de Fado",
+     "area": "Alfama",
+     "cuisine": "Portuguese",
+     "price_pp": 60,
+     "rating": 4.6,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-06-13": [
+       "18:30"
+      ]
+     }
+    },
+    {
+     "name": "Prado",
+     "area": "Alfama",
+     "cuisine": "Portuguese",
+     "price_pp": 70,
+     "rating": 4.5,
+     "max_party": 4,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-06-13": [
+       "19:00"
+      ]
+     }
+    }
+   ],
+   "events": [
+    {
+     "name": "Santo António Street Festival",
+     "city": "Lisbon",
+     "date": "2026-06-13",
+     "category": "festival",
+     "venue": "Alfama streets",
+     "time": "19:30",
+     "price": 0
+    },
+    {
+     "name": "Fado at Mesa de Frades",
+     "city": "Lisbon",
+     "date": "2026-06-13",
+     "category": "show",
+     "venue": "Mesa de Frades",
+     "time": "21:00",
+     "price": 40
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_rentals": {
+    "duration_s": 80,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "search_restaurants": {
+    "duration_s": 62,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   },
+   "search_events": {
+    "duration_s": 78,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 16
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me a one-bedroom to rent in Lisbon, under fifteen hundred a month.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Also look for a table for six in Alfama this Saturday, Portuguese food.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "And see what's on Saturday night.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "How's the second one going?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Skip the apartment for now, a friend might have a place for me. Keep the other two going.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u6",
+   "text": "My parents are coming along this time. We haven't traveled together in ages.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "happy"
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rent",
+   "summary": "Rental: started u1, cancelled u5.",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Lisbon",
+      "bedrooms": 1,
+      "max_rent": 1500
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u5",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  },
+  {
+   "goal_id": "g_res",
+   "summary": "For 6 Sat: Clube de Fado 6:30, Taberna 6/7:30. Prado max 4 (trap).",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Alfama",
+      "party_size": 6,
+      "date": "2026-06-13",
+      "cuisine": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "Alfama",
+     "party_size": 6,
+     "date": "2026-06-13",
+     "cuisine": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Clube de Fado"
+     ],
+     [
+      "Taberna"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_ev",
+   "summary": "Festival 7:30 free; fado 9pm €40.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Lisbon",
+      "date": "2026-06-13",
+      "category": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Lisbon",
+     "date": "2026-06-13",
+     "category": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Santo António",
+      "festival"
+     ],
+     [
+      "Mesa de Frades",
+      "Fado"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "'Second one' = dinner; truthful.",
+   "must_not": "Report the rental or events.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "dinner",
+      "table",
+      "restaurant"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u5",
+   "type": "selective_cancel",
+   "must": "Cancel only the rental.",
+   "must_not": "Cancel everything.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "apartment",
+      "rental"
+     ],
+     [
+      "dinner",
+      "event"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u6",
+   "type": "chitchat_no_action",
+   "must": "Warm, brief.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "parents",
+      "great",
+      "special"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Treats 'second one' as rental or events.",
+  "Recommends Prado (max 4).",
+  "Reports rentals after cancellation."
+ ]
+}

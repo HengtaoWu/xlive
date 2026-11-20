@@ -1,0 +1,229 @@
+{
+ "episode_id": "en_t06_printer_quotes_partial",
+ "template_id": "T06_partial_result_known_unknown",
+ "split": "all",
+ "lang": "en",
+ "domain": "procurement",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S6_partial_result",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Compare Brightline vs Coastal printer quotes including installation, against a 20,000 budget.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-07-08T09:40:00-04:00",
+   "weekday": "Wednesday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Brightline": [
+     "Brightline Office",
+     "Bright Line"
+    ],
+    "Coastal": [
+     "Coastal Imaging",
+     "Coastal Office Systems"
+    ]
+   },
+   "vendors": [
+    {
+     "name": "Brightline",
+     "base_price": 17800,
+     "install_fee": 1500,
+     "install_fee_ready_s": 0
+    },
+    {
+     "name": "Coastal",
+     "base_price": 16900,
+     "install_fee": 2700,
+     "install_fee_ready_s": 9999
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "compare_quotes": {
+    "duration_s": 48,
+    "partial": {
+     "at_s": 12
+    },
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you compare the quotes from Brightline and Coastal for the new office printers? Our budget's twenty thousand, and make sure the installation fee is included.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Okay, so can we tell which one's cheaper yet?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_quotes",
+    "event": "task_partial",
+    "delay": 4,
+    "max_wait": 30
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Right. While we wait, do printer leases usually include maintenance, or is that billed separately?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Good. Let's go with that one then, I'll tell finance.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_quotes",
+    "event": "task_completed",
+    "delay": 14,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_quotes",
+   "summary": "One quote comparison (Brightline, Coastal, install fee included, budget 20000). Partial: Brightline 17,800+1,500=19,300; Coastal base 16,900, install unknown. Final: Coastal install 2,700 → 19,600, so Brightline is cheaper by 300; both within budget.",
+   "match": {
+    "tool": "compare_quotes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "vendors": [
+       "Brightline",
+       "Coastal"
+      ],
+      "include_install_fee": true,
+      "budget": 20000
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "vendors": [
+      "Brightline",
+      "Coastal"
+     ],
+     "include_install_fee": true,
+     "budget": 20000
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Brightline"
+     ],
+     [
+      "19,300",
+      "19300"
+     ],
+     [
+      "300"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "partial_answer",
+   "must": "Say it cannot be decided yet: Brightline total is known (19,300 incl. install) but Coastal's install fee is still missing; Coastal's base price (16,900) is lower, so it depends on that fee.",
+   "must_not": "Declare Coastal (or Brightline) the cheaper option as a final conclusion; invent Coastal's install fee.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "not yet",
+      "can't tell",
+      "cannot tell",
+      "still waiting",
+      "missing",
+      "don't know yet",
+      "depends"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "coastal is cheaper",
+     "coastal is the cheaper",
+     "go with coastal"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Answer generally: many leases bundle maintenance/service, but it varies and should be checked in the contract.",
+   "must_not": "Answer with the quote status only.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "maintenance",
+      "service"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Confirm the choice consistent with the final result (Brightline, 19,300 vs 19,600) if it was delivered; otherwise state the final numbers first.",
+   "must_not": "Confirm Coastal or contradict the final numbers.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Brightline",
+      "great",
+      "sounds good",
+      "okay"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "coastal is cheaper"
+    ]
+   },
+   "latency": false
+  }
+ ],
+ "failure_conditions": [
+  "Treats the partial result as final and says Coastal is cheaper.",
+  "Invents Coastal's installation fee.",
+  "Never proactively reports the final comparison once it arrives.",
+  "Repeats the partial result announcement several times."
+ ]
+}

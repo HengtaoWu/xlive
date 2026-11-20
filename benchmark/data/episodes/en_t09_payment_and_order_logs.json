@@ -1,0 +1,331 @@
+{
+ "episode_id": "en_t09_payment_and_order_logs",
+ "template_id": "T09_independent_second_task_out_of_order",
+ "split": "all",
+ "lang": "en",
+ "domain": "code_debugging",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Triage payment-service errors from last night; add the same for order-service; the order result returns first and must not be attributed to payments.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-06-03T09:30:00-04:00",
+   "weekday": "Wednesday",
+   "services": [
+    "payment-service",
+    "order-service",
+    "user-service"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "payment-service": [
+     "payments",
+     "payment service",
+     "the payment service"
+    ],
+    "order-service": [
+     "orders",
+     "order service",
+     "the order service"
+    ]
+   },
+   "logs": {
+    "payment-service": {
+     "last_night": {
+      "window": "2026-06-02 18:00 to 2026-06-03 06:00",
+      "total_errors": 236,
+      "groups": [
+       {
+        "error": "504 Gateway Timeout from upstream bank-gateway",
+        "count": 214,
+        "peak": "01:00-03:00"
+       },
+       {
+        "error": "502 Bad Gateway from bank-gateway",
+        "count": 18,
+        "peak": "01:40"
+       },
+       {
+        "error": "NullPointerException in RefundController",
+        "count": 4,
+        "peak": "22:15"
+       }
+      ]
+     }
+    },
+    "order-service": {
+     "last_night": {
+      "window": "2026-06-02 18:00 to 2026-06-03 06:00",
+      "total_errors": 41,
+      "groups": [
+       {
+        "error": "DB connection pool exhausted (HikariPool-1)",
+        "count": 37,
+        "peak": "02:10-02:40"
+       },
+       {
+        "error": "Kafka consumer lag warning",
+        "count": 4,
+        "peak": "02:30"
+       }
+      ]
+     }
+    },
+    "user-service": {
+     "last_night": {
+      "window": "2026-06-02 18:00 to 2026-06-03 06:00",
+      "total_errors": 0,
+      "groups": []
+     }
+    }
+   }
+  },
+  "tool_behaviors": {
+   "triage_logs": {
+    "duration_s": 110,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    },
+    "overrides": [
+     {
+      "when": {
+       "service": "order-service"
+      },
+      "set": {
+       "duration_s": 14
+      }
+     }
+    ]
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you dig through the payment service's error logs from last night and tell me what's going on?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Oh, and remind me, what's the actual difference between a gateway timeout and a bad gateway?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "While you're at it, check the order service too. Same window.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "The on-call engineer said she got paged like five times overnight. Brutal.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u5",
+   "text": "So is there a verdict on payments yet?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_pay",
+   "summary": "Payments: 214 upstream 504s from bank-gateway 1–3 a.m., plus 18 502s. Returns last.",
+   "match": {
+    "tool": "triage_logs",
+    "args": {
+     "service": "payment-service"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "payment-service",
+      "time_window": "last_night",
+      "min_level": {
+       "$optional": "error"
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "payment-service",
+     "time_window": "last_night",
+     "min_level": {
+      "$optional": "error"
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "504"
+     ],
+     [
+      "214"
+     ],
+     [
+      "bank-gateway",
+      "bank gateway"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_ord",
+   "summary": "Orders: 37 DB pool exhaustions 2:10–2:40. Returns first.",
+   "match": {
+    "tool": "triage_logs",
+    "args": {
+     "service": "order-service"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "order-service",
+      "time_window": "last_night",
+      "min_level": {
+       "$optional": "error"
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "order-service",
+     "time_window": "last_night",
+     "min_level": {
+      "$optional": "error"
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "connection pool",
+      "HikariPool"
+     ],
+     [
+      "37"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "502 = invalid upstream response; 504 = upstream timed out.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "timeout",
+      "in time"
+     ],
+     [
+      "invalid",
+      "bad response"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief empathy; no change.",
+   "must_not": "Change or cancel tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "rough",
+      "worst",
+      "brutal",
+      "oof"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "status_answer",
+   "must": "Truthful: payments still running; don't attribute the order result to payments.",
+   "must_not": "Say payments is a pool problem.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "not yet",
+      "still",
+      "504",
+      "bank-gateway"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "payments is a connection pool",
+     "payment service has a connection pool"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Attributes the pool exhaustion to payments.",
+  "Forgets payments after starting the order scan.",
+  "Fabricates a payments verdict."
+ ]
+}

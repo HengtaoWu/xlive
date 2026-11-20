@@ -1,0 +1,306 @@
+{
+ "episode_id": "en_t05d_incident_postmortem",
+ "template_id": "T05_status_reference_selective_cancel",
+ "split": "all",
+ "lang": "en",
+ "domain": "code_debugging",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S5_status_query",
+  "S5_selective_cancel",
+  "silence_request_not_cancel",
+  "proactive_delivery"
+ ],
+ "user_goal": "Draft an incident postmortem; a parallel vendor-status scan is dropped; postmortem delivered.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-10-26T15:30:00-04:00",
+   "weekday": "Monday",
+   "data_sources": [
+    "incident timeline",
+    "status pages"
+   ]
+  },
+  "materials": {
+   "report": {
+    "title": "Postmortem: Checkout outage Oct 24",
+    "sections": [
+     "Impact: 47 minutes, ~8% of orders failed",
+     "Root cause: expired TLS certificate on payment proxy",
+     "Action items: cert expiry alerts, runbook update"
+    ],
+    "headline": "A 47-minute checkout outage was caused by an expired TLS certificate."
+   },
+   "sources": [
+    {
+     "title": "Payment provider status history",
+     "publisher": "StatusHub"
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "generate_report": {
+    "duration_s": 66,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 30
+    },
+    "stages": [
+     {
+      "at_frac": 0,
+      "label": "reading the incident timeline"
+     },
+     {
+      "at_frac": 0.25,
+      "label": "drafting impact"
+     },
+     {
+      "at_frac": 0.5,
+      "label": "drafting root cause"
+     },
+     {
+      "at_frac": 0.75,
+      "label": "drafting action items"
+     }
+    ]
+   },
+   "research_sources": {
+    "duration_s": 110,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 60
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Start a postmortem for Saturday's checkout outage: impact, root cause, and action items.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And check whether our payment provider reported anything on their status page that day.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "What stage is the postmortem at?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay, forget the provider check, we already know it was our cert. Keep the postmortem going.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Wait, stop talking for a moment, I've got the VP on the other line.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "hurried"
+  },
+  {
+   "turn_id": "u6",
+   "text": "Okay, back. What did I miss?",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u5",
+    "delay": 15
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_pm",
+   "summary": "Postmortem delivered: 47 minutes, expired TLS certificate.",
+   "match": {
+    "tool": "generate_report"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": {
+       "$any": true
+      },
+      "sections": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "period": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "topic": {
+      "$any": true
+     },
+     "period": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "sections": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "47"
+     ],
+     [
+      "certificate",
+      "TLS"
+     ]
+    ],
+    "min_facts": 1
+   }
+  },
+  {
+   "goal_id": "g_status",
+   "summary": "Vendor status scan: started u2, cancelled u4.",
+   "match": {
+    "tool": "research_sources"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": "payment provider status page Oct 24 2026",
+      "max_items": 3
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "cancel",
+     "after": "u4",
+     "deadline_s": 15
+    }
+   ],
+   "final": {
+    "status": "cancelled",
+    "constraints": {},
+    "allowed_extra": []
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "status_answer",
+   "must": "Grounded stage.",
+   "must_not": "Make up progress; talk about the status scan.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "drafting",
+      "impact",
+      "reading",
+      "timeline",
+      "section"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "selective_cancel",
+   "must": "Cancel only the provider check.",
+   "must_not": "Cancel the postmortem.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "provider",
+      "check"
+     ],
+     [
+      "postmortem"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "silence_request",
+   "must": "Quiet / tiny ack.",
+   "must_not": "Keep talking; cancel tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "sure",
+      "okay"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u6",
+   "type": "resume",
+   "must": "Welcome back + grounded status or delivered result.",
+   "must_not": "Say the provider check is running.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "welcome back",
+      "postmortem"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Cancels the postmortem.",
+  "Mentions provider status results after cancellation."
+ ]
+}

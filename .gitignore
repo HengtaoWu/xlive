@@ -1,0 +1,29 @@
+.DS_Store
+.env
+
+# Python
+.venv/
+.venvs/
+/.tools/miniforge/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Frontend dependencies
+node_modules/
+
+# Runtime and evaluation outputs
+/data/
+/logs/
+/outputs/
+/benchmark/**/.cache/
+/benchmark/**/artifacts/
+/benchmark/**/*.pending
+
+# Model weights
+*.onnx
+*.pt
+*.pth
+*.safetensors

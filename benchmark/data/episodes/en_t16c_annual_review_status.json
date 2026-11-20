@@ -1,0 +1,255 @@
+{
+ "episode_id": "en_t16c_annual_review_status",
+ "template_id": "T16_double_status_stages",
+ "split": "all",
+ "lang": "en",
+ "domain": "office_docs",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S5_status_query",
+  "status_progression",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Annual team review report; status asked twice; answers must track real stage progression.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-12-21T15:00:00-08:00",
+   "weekday": "Monday",
+   "data_sources": [
+    "project tracker",
+    "weekly updates"
+   ]
+  },
+  "materials": {
+   "report": {
+    "title": "2026 Annual Team Review",
+    "sections": [
+     "Shipped 14 projects, 86% on time",
+     "Biggest issue: cross-team dependencies caused slips",
+     "2027 focus: voice agent platform"
+    ],
+    "headline": "14 projects shipped, 86% on time; cross-team dependencies were the main bottleneck."
+   }
+  },
+  "tool_behaviors": {
+   "generate_report": {
+    "duration_s": 88,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 30
+    },
+    "stages": [
+     {
+      "at_frac": 0,
+      "label": "collecting project data"
+     },
+     {
+      "at_frac": 0.25,
+      "label": "writing delivery summary"
+     },
+     {
+      "at_frac": 0.5,
+      "label": "writing issue analysis"
+     },
+     {
+      "at_frac": 0.75,
+      "label": "writing next-year plan"
+     }
+    ]
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Write up our annual team review for this year.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Where's it at?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "How long should one of these be, ideally?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "I'm going to grab some water.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Back. How about now?",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u4",
+    "delay": 24
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_rep",
+   "summary": "14 projects, 86% on time, cross-team dependencies.",
+   "match": {
+    "tool": "generate_report"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "topic": {
+       "$any": true
+      },
+      "sections": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "period": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "topic": {
+      "$any": true
+     },
+     "sections": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "period": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "14",
+      "fourteen"
+     ],
+     [
+      "86"
+     ],
+     [
+      "dependenc"
+     ]
+    ],
+    "min_facts": 2
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "status_answer",
+   "must": "Truthful stage.",
+   "must_not": "Invent a percentage.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "collecting",
+      "data",
+      "getting started"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "2–3 pages; conclusions first.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "page"
+     ],
+     [
+      "conclusion",
+      "top",
+      "appendix"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Short.",
+   "must_not": "Long reply.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "okay"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "status_answer",
+   "must": "Later stage.",
+   "must_not": "Repeat the first answer; claim done.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "issue",
+      "third",
+      "three of four"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Same stage twice.",
+  "Invents progress."
+ ]
+}

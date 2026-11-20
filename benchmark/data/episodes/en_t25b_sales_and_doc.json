@@ -1,0 +1,264 @@
+{
+ "episode_id": "en_t25b_sales_and_doc",
+ "template_id": "T25_quick_and_long_followup",
+ "split": "all",
+ "lang": "en",
+ "domain": "data_analysis",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "result_grounded_followup",
+  "proactive_delivery"
+ ],
+ "user_goal": "Long monthly sales analysis + a quick pricing-memo summary; follow-up on the memo.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-12-07T10:00:00-05:00",
+   "weekday": "Monday",
+   "user_files": [
+    "pricing memo.docx"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "pricing memo.docx": [
+     "pricing memo",
+     "the pricing memo"
+    ]
+   },
+   "files": {
+    "pricing memo.docx": {
+     "readable": true,
+     "points": [
+      "Raise Pro plan from $29 to $34 on Jan 15",
+      "Existing customers keep $29 for 6 months",
+      "Annual plans get 2 months free"
+     ]
+    }
+   },
+   "sales_rows": [
+    {
+     "month": "2026-11",
+     "channel": "web",
+     "region": "East",
+     "status": "completed",
+     "orders": 800,
+     "revenue": 64000
+    },
+    {
+     "month": "2026-11",
+     "channel": "app",
+     "region": "West",
+     "status": "completed",
+     "orders": 600,
+     "revenue": 51000
+    },
+    {
+     "month": "2026-11",
+     "channel": "web",
+     "region": "South",
+     "status": "completed",
+     "orders": 300,
+     "revenue": 22000
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "analyze_sales": {
+    "duration_s": 70,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "summarize_document": {
+    "duration_s": 10,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 8
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Break down November revenue by region.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And give me the gist of the pricing memo.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "So existing customers aren't affected right away?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_d",
+    "event": "task_completed",
+    "delay": 3,
+    "max_wait": 40
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay, our sales team will be happy about that.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_s",
+   "summary": "Nov by region: East 64k, West 51k, South 22k.",
+   "match": {
+    "tool": "analyze_sales"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "month": "2026-11",
+      "group_by": "region",
+      "metric": "revenue"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "month": "2026-11",
+     "group_by": "region",
+     "metric": "revenue",
+     "exclude_refunded": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "East"
+     ],
+     [
+      "64"
+     ]
+    ],
+    "min_facts": 2
+   }
+  },
+  {
+   "goal_id": "g_d",
+   "summary": "Pro 29→34 Jan 15; existing keep 6 months; annual 2 months free.",
+   "match": {
+    "tool": "summarize_document"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "file": "pricing memo.docx",
+      "focus": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "file": "pricing memo.docx",
+     "focus": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "34"
+     ],
+     [
+      "January 15",
+      "Jan 15",
+      "15th"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u3"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "grounded_answer",
+   "must": "6-month grandfathering.",
+   "must_not": "Say everyone pays $34 on Jan 15.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "six months",
+      "6 months"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "everyone pays 34"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Brief.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "talking point",
+      "happy",
+      "bet"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Says existing customers pay $34 immediately.",
+  "Holds the memo until sales finish."
+ ]
+}

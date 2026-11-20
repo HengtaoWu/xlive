@@ -1,0 +1,333 @@
+{
+ "episode_id": "en_t09d_vacuum_and_purifier",
+ "template_id": "T09_independent_second_task_out_of_order",
+ "split": "all",
+ "lang": "en",
+ "domain": "shopping",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Robot vacuum search, then an air purifier search; the purifier returns first and must not be confused with the vacuum.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-11-30T20:30:00-08:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "robot vacuum": [
+     "robovac",
+     "vacuum robot",
+     "robot vacuums"
+    ],
+    "air purifier": [
+     "purifier",
+     "air purifiers"
+    ]
+   },
+   "catalog": [
+    {
+     "name": "Roborock S8",
+     "category": "robot vacuum",
+     "price": 599,
+     "rating": 4.8,
+     "features": [
+      "self-emptying",
+      "mopping"
+     ]
+    },
+    {
+     "name": "Eufy X10",
+     "category": "robot vacuum",
+     "price": 499,
+     "rating": 4.7,
+     "features": [
+      "self-emptying",
+      "mopping"
+     ]
+    },
+    {
+     "name": "Levoit Core 600S",
+     "category": "air purifier",
+     "price": 299,
+     "rating": 4.6,
+     "features": [
+      "quiet"
+     ]
+    },
+    {
+     "name": "Coway Airmega 400",
+     "category": "air purifier",
+     "price": 449,
+     "rating": 4.8,
+     "features": [
+      "quiet",
+      "large rooms"
+     ]
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_products": {
+    "duration_s": 58,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    },
+    "overrides": [
+     {
+      "when": {
+       "category": "air purifier"
+      },
+      "set": {
+       "duration_s": 12
+      }
+     }
+    ]
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Which robot vacuums have the best reviews right now?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Are they any good with cat hair? I have two cats.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "While you're at it, look at air purifiers too.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "When they shed in spring, my apartment looks like it snowed.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u5",
+   "text": "Anything back on the vacuums yet?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_robot",
+   "summary": "Vacuums: Roborock S8 4.8, Eufy X10 4.7. Returns second.",
+   "match": {
+    "tool": "search_products",
+    "args": {
+     "category": "robot vacuum"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "category": "robot vacuum",
+      "features": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "max_price": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "category": "robot vacuum",
+     "features": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "max_price": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Roborock",
+      "S8"
+     ],
+     [
+      "Eufy",
+      "X10"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_purifier",
+   "summary": "Purifiers: Coway Airmega 400 4.8, Levoit 600S. Returns first.",
+   "match": {
+    "tool": "search_products",
+    "args": {
+     "category": "air purifier"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "category": "air purifier",
+      "features": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "max_price": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "category": "air purifier",
+     "features": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "max_price": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Coway",
+      "Airmega"
+     ],
+     [
+      "Levoit"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Suction, tangle-free roller, self-emptying.",
+   "must_not": "Only say it's searching.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "suction",
+      "tangle",
+      "roller",
+      "self-empty"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Light, brief.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "brush",
+      "shed",
+      "picture"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "status_answer",
+   "must": "Vacuums still running; don't pass off purifiers as vacuums.",
+   "must_not": "Present a purifier as a vacuum.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "still",
+      "not yet"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "the best vacuum is the coway",
+     "levoit vacuum"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Treats purifier results as vacuums.",
+  "Forgets the vacuum search."
+ ]
+}

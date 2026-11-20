@@ -1,0 +1,345 @@
+{
+ "episode_id": "en_t08c_search_logs_and_retro",
+ "template_id": "T08_backend_failure_needs_input",
+ "split": "all",
+ "lang": "en",
+ "domain": "code_debugging+office_docs",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S8_needs_input_failure",
+  "S5_status_query",
+  "S2_independent_second_task"
+ ],
+ "user_goal": "Triage search-service errors over 24h plus a locked retro deck; user supplies the PDF notes.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-01-26T16:00:00-08:00",
+   "weekday": "Monday",
+   "services": [
+    "search-service",
+    "ranking-service",
+    "api-gateway"
+   ],
+   "user_files": [
+    "q4-retro.pptx",
+    "q4-retro-notes.pdf"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "search-service": [
+     "search",
+     "search service"
+    ]
+   },
+   "logs": {
+    "search-service": {
+     "last_24h": {
+      "window": "last 24h",
+      "total_errors": 512,
+      "groups": [
+       {
+        "error": "OutOfMemoryError in IndexWarmer",
+        "count": 401,
+        "peak": "03:00-04:00"
+       },
+       {
+        "error": "429 Too Many Requests from ranking-service",
+        "count": 111,
+        "peak": "12:00-13:00"
+       }
+      ],
+      "note": "Memory errors coincide with the nightly re-index."
+     },
+     "last_1h": {
+      "window": "last 1h",
+      "total_errors": 3,
+      "groups": []
+     }
+    }
+   },
+   "files": {
+    "q4-retro.pptx": {
+     "readable": false,
+     "error": "The file is password-protected and could not be opened."
+    },
+    "q4-retro-notes.pdf": {
+     "readable": true,
+     "points": [
+      "What went well: on-call load down 30%",
+      "What didn't: flaky integration tests",
+      "Action: quarantine flaky tests by Feb 15"
+     ]
+    }
+   }
+  },
+  "tool_behaviors": {
+   "triage_logs": {
+    "duration_s": 55,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "summarize_document": {
+    "duration_s": 9,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Go through the search service errors from the last twenty-four hours, would you?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And summarize the Q4 retro deck, it's q4-retro.pptx.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Is it the ranking service again, you think?",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u2",
+    "delay": 8
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Ugh, that deck has a password. Use q4-retro-notes.pdf instead.",
+   "trigger": {
+    "type": "after_agent_mention",
+    "goal": "g_retro",
+    "event": "task_needs_input",
+    "gap": 1,
+    "max_wait": 30,
+    "fallback_s": 45
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "So what should I tell the team about the errors?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_logs",
+    "event": "task_completed",
+    "delay": 10,
+    "max_wait": 60
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_logs",
+   "summary": "24h: 401 OOM in IndexWarmer during nightly re-index; 111 429s. last_1h is a trap (3 errors).",
+   "match": {
+    "tool": "triage_logs"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "search-service",
+      "time_window": "last_24h",
+      "min_level": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "search-service",
+     "time_window": "last_24h",
+     "min_level": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "OutOfMemory",
+      "out of memory",
+      "memory"
+     ],
+     [
+      "401"
+     ],
+     [
+      "re-index",
+      "reindex",
+      "index"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_retro",
+   "summary": "Locked pptx → needs_input; PDF notes supplied.",
+   "match": {
+    "tool": "summarize_document"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "file": "q4-retro.pptx"
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u4",
+     "deadline_s": 15,
+     "fields": [
+      "file"
+     ],
+     "constraints": {
+      "file": "q4-retro-notes.pdf"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "file": "q4-retro-notes.pdf",
+     "focus": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "30%",
+      "30 percent",
+      "thirty percent"
+     ],
+     [
+      "flaky"
+     ],
+     [
+      "February 15",
+      "Feb 15"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "problem_report": {
+    "event": "task_needs_input",
+    "key_facts": [
+     [
+      "password",
+      "locked",
+      "protected",
+      "couldn't open",
+      "can't open"
+     ]
+    ]
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "status_answer",
+   "must": "No conclusion before the logs return.",
+   "must_not": "Blame ranking as a finding.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "too early",
+      "still",
+      "not yet",
+      "can't tell"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "it's the ranking service",
+     "ranking is the cause",
+     "yes, it's ranking"
+    ]
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "constraint_update",
+   "must": "Re-run on the PDF.",
+   "must_not": "Only acknowledge.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "pdf",
+      "notes"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "grounded_answer",
+   "must": "Grounded: OOM during re-index dominates; ranking 429s secondary.",
+   "must_not": "Blame ranking as main cause.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "memory"
+     ],
+     [
+      "index",
+      "re-index",
+      "reindex"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": [
+     "it's the ranking service"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Blames ranking before the logs return.",
+  "Scans only the last hour.",
+  "Invents retro content from the locked deck."
+ ]
+}

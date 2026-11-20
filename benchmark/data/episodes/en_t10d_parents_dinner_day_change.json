@@ -1,0 +1,274 @@
+{
+ "episode_id": "en_t10d_parents_dinner_day_change",
+ "template_id": "T10_change_of_mind_status",
+ "split": "all",
+ "lang": "en",
+ "domain": "daily_planning",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S4_modify_keep_unchanged",
+  "S5_status_query",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Dinner for 4 in Back Bay moved from Saturday to Sunday night, everything else unchanged; status asked mid-way.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-09-21T15:00:00-04:00",
+   "weekday": "Monday",
+   "user_city": "Boston"
+  },
+  "materials": {
+   "aliases": {
+    "Back Bay": [
+     "back bay"
+    ]
+   },
+   "restaurants": [
+    {
+     "name": "Grill 23",
+     "area": "Back Bay",
+     "cuisine": "steakhouse",
+     "price_pp": 120,
+     "rating": 4.8,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-09-26": [
+       "18:30"
+      ],
+      "2026-09-27": []
+     }
+    },
+    {
+     "name": "Atlantic Fish Co.",
+     "area": "Back Bay",
+     "cuisine": "seafood",
+     "price_pp": 70,
+     "rating": 4.6,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-09-26": [
+       "18:00",
+       "19:30"
+      ],
+      "2026-09-27": [
+       "18:00"
+      ]
+     }
+    },
+    {
+     "name": "Joe's American Bar",
+     "area": "Back Bay",
+     "cuisine": "American",
+     "price_pp": 45,
+     "rating": 4.4,
+     "max_party": 10,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-09-27": [
+       "17:30",
+       "19:00"
+      ]
+     }
+    },
+    {
+     "name": "Neptune Oyster",
+     "area": "North End",
+     "cuisine": "seafood",
+     "price_pp": 90,
+     "rating": 4.9,
+     "max_party": 4,
+     "wheelchair_accessible": false,
+     "slots": {
+      "2026-09-27": [
+       "18:30"
+      ]
+     }
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_restaurants": {
+    "duration_s": 42,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 26
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find a dinner spot in Back Bay Saturday night for four.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "My parents almost never visit, so I want to take them somewhere nice.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "warm"
+  },
+  {
+   "turn_id": "u3",
+   "text": "Ugh, they're seeing relatives Saturday. Switch it to Sunday night, everything else the same.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Anything yet?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_dinner",
+   "summary": "Sun Back Bay for 4: Atlantic Fish 6pm, Joe's 5:30/7. Grill 23 is Saturday-only (trap); Neptune is in the North End.",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Back Bay",
+      "party_size": 4,
+      "date": "2026-09-26",
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    },
+    {
+     "op": "modify",
+     "after": "u3",
+     "deadline_s": 15,
+     "fields": [
+      "date"
+     ],
+     "constraints": {
+      "area": "Back Bay",
+      "party_size": 4,
+      "date": "2026-09-27",
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "Back Bay",
+     "party_size": 4,
+     "date": "2026-09-27",
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Atlantic"
+     ],
+     [
+      "Joe's"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "chitchat_no_action",
+   "must": "Warm, brief.",
+   "must_not": "Change tasks.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "sweet",
+      "nice",
+      "occasion"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "constraint_update",
+   "must": "Move to Sunday; keep area and size.",
+   "must_not": "Keep searching Saturday.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Sunday"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "status_answer",
+   "must": "Truthful.",
+   "must_not": "Recommend Grill 23.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "still",
+      "Atlantic",
+      "Joe's"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "grill 23"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Recommends Saturday-only Grill 23.",
+  "Suggests Neptune Oyster in the North End."
+ ]
+}

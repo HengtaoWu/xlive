@@ -1,0 +1,291 @@
+{
+ "episode_id": "en_t09b_lisbon_porto_hotels",
+ "template_id": "T09_independent_second_task_out_of_order",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "S1_related_qa_during_wait",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Hotels in Lisbon, then (added) Porto; Porto returns first and must not be mistaken for Lisbon.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-05-04T20:00:00+01:00",
+   "weekday": "Monday",
+   "currency": "EUR"
+  },
+  "materials": {
+   "aliases": {
+    "Lisbon": [
+     "Lisboa"
+    ],
+    "Porto": [
+     "Oporto"
+    ]
+   },
+   "hotels": [
+    {
+     "name": "Chiado Courtyard",
+     "city": "Lisbon",
+     "area": "Chiado",
+     "price_per_night": 160,
+     "rating": 4.7,
+     "walk_min": 4
+    },
+    {
+     "name": "Alfama Steps Inn",
+     "city": "Lisbon",
+     "area": "Alfama",
+     "price_per_night": 120,
+     "rating": 4.5,
+     "walk_min": 9
+    },
+    {
+     "name": "Ribeira River Rooms",
+     "city": "Porto",
+     "area": "Ribeira",
+     "price_per_night": 110,
+     "rating": 4.8,
+     "walk_min": 6
+    },
+    {
+     "name": "Bolhão Boutique",
+     "city": "Porto",
+     "area": "Bolhão",
+     "price_per_night": 95,
+     "rating": 4.6,
+     "walk_min": 2
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_hotels": {
+    "duration_s": 60,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    },
+    "overrides": [
+     {
+      "when": {
+       "city": "Porto"
+      },
+      "set": {
+       "duration_s": 14
+      }
+     }
+    ]
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me a hotel in Lisbon for June tenth to thirteenth.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Is it worth taking the train up to Porto, or should I fly?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Okay, then also find something in Porto for the thirteenth to the fifteenth.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "My grandmother was from Porto, actually. I've never been.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "warm"
+  },
+  {
+   "turn_id": "u5",
+   "text": "Any news on Lisbon?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_lisbon",
+   "summary": "Lisbon Jun 10-13: Chiado Courtyard 4.7, Alfama Steps 4.5. Returns last.",
+   "match": {
+    "tool": "search_hotels",
+    "args": {
+     "city": "Lisbon"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Lisbon",
+      "check_in": "2026-06-10",
+      "check_out": "2026-06-13"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Lisbon",
+     "check_in": "2026-06-10",
+     "check_out": "2026-06-13"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Chiado Courtyard"
+     ],
+     [
+      "Alfama Steps"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u5"
+   ]
+  },
+  {
+   "goal_id": "g_porto",
+   "summary": "Porto Jun 13-15: Ribeira River Rooms 4.8, Bolhão Boutique 4.6. Returns first.",
+   "match": {
+    "tool": "search_hotels",
+    "args": {
+     "city": "Porto"
+    }
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Porto",
+      "check_in": "2026-06-13",
+      "check_out": "2026-06-15"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Porto",
+     "check_in": "2026-06-13",
+     "check_out": "2026-06-15"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Ribeira"
+     ],
+     [
+      "Bolhão",
+      "Bolhao"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Train ~3h (Alfa Pendular) is the sensible choice.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "train",
+      "Alfa",
+      "three hours",
+      "3 hours"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "chitchat_no_action",
+   "must": "Warm, brief; no task change.",
+   "must_not": "Change either search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "special",
+      "grandmother",
+      "nice"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u5",
+   "type": "status_answer",
+   "must": "Lisbon still running; don't present Porto hotels as Lisbon.",
+   "must_not": "Attribute Porto results to Lisbon.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "still",
+      "not yet",
+      "isn't back"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "lisbon: ribeira",
+     "in lisbon, ribeira",
+     "lisbon has ribeira"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Presents Porto hotels as Lisbon results.",
+  "Forgets the Lisbon search after Porto returns."
+ ]
+}

@@ -1,0 +1,356 @@
+{
+ "episode_id": "en_t28b_dinner_near_show",
+ "template_id": "T28_dependent_task",
+ "split": "all",
+ "lang": "en",
+ "domain": "events",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "dependent_request",
+  "result_grounded_followup",
+  "S1_related_qa_during_wait",
+  "proactive_delivery"
+ ],
+ "user_goal": "Find a show in NYC Saturday; then dinner near wherever the chosen show is.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-10-19T12:00:00-04:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "New York": [
+     "NYC",
+     "Manhattan"
+    ],
+    "Theater District": [
+     "Times Square",
+     "Midtown West",
+     "Broadway"
+    ],
+    "Lower East Side": [
+     "LES"
+    ]
+   },
+   "events": [
+    {
+     "name": "Off-Broadway: Little Shop of Horrors",
+     "city": "New York",
+     "date": "2026-10-24",
+     "category": "theater",
+     "venue": "Westside Theatre",
+     "area": "Theater District",
+     "time": "20:00",
+     "price": 79
+    },
+    {
+     "name": "Jazz at the Blue Note",
+     "city": "New York",
+     "date": "2026-10-24",
+     "category": "music",
+     "venue": "Blue Note",
+     "area": "Greenwich Village",
+     "time": "20:00",
+     "price": 45
+    },
+    {
+     "name": "Sleep No More",
+     "city": "New York",
+     "date": "2026-10-24",
+     "category": "theater",
+     "venue": "McKittrick Hotel",
+     "area": "Chelsea",
+     "time": "19:00",
+     "price": 120
+    }
+   ],
+   "restaurants": [
+    {
+     "name": "Joe Allen",
+     "area": "Theater District",
+     "cuisine": "American",
+     "price_pp": 55,
+     "rating": 4.4,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-10-24": [
+       "18:00",
+       "20:30"
+      ]
+     }
+    },
+    {
+     "name": "Becco",
+     "area": "Theater District",
+     "cuisine": "Italian",
+     "price_pp": 50,
+     "rating": 4.5,
+     "max_party": 8,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-10-24": [
+       "17:45"
+      ]
+     }
+    },
+    {
+     "name": "Cookshop",
+     "area": "Chelsea",
+     "cuisine": "American",
+     "price_pp": 60,
+     "rating": 4.5,
+     "max_party": 6,
+     "wheelchair_accessible": true,
+     "slots": {
+      "2026-10-24": [
+       "17:30"
+      ]
+     }
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_events": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   },
+   "search_restaurants": {
+    "duration_s": 30,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Find me a theater show in New York this Saturday.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Is it worth getting TKTS tickets the same day?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "The cheaper one sounds good. Find dinner for two near it, before the show.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_ev",
+    "event": "task_completed",
+    "delay": 6,
+    "max_wait": 50
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "What should I wear to an off-Broadway show?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_ev",
+   "summary": "Theater: Sleep No More 7pm Chelsea $120; Little Shop 8pm Theater District $79.",
+   "match": {
+    "tool": "search_events"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "New York",
+      "date": "2026-10-24",
+      "category": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "max_price": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "New York",
+     "date": "2026-10-24",
+     "category": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "max_price": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Little Shop",
+      "Westside"
+     ],
+     [
+      "Sleep No More"
+     ]
+    ],
+    "min_facts": 1
+   },
+   "asked_in_turns": [
+    "u3"
+   ]
+  },
+  {
+   "goal_id": "g_r",
+   "summary": "Area must be Theater District (from the chosen show).",
+   "match": {
+    "tool": "search_restaurants"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u3",
+     "deadline_s": 15,
+     "constraints": {
+      "area": "Theater District",
+      "party_size": 2,
+      "date": "2026-10-24",
+      "time": {
+       "$optional": {
+        "$any": true
+       }
+      },
+      "cuisine": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "area": "Theater District",
+     "party_size": 2,
+     "date": "2026-10-24",
+     "time": {
+      "$optional": {
+       "$any": true
+      }
+     },
+     "cuisine": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Joe Allen"
+     ],
+     [
+      "Becco"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "TKTS savings.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "save",
+      "discount",
+      "off-Broadway"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "dependent_request",
+   "must": "Resolve 'cheaper one' → Little Shop → Theater District.",
+   "must_not": "Search Chelsea.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Theater District",
+      "Westside",
+      "Times Square"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "chelsea"
+    ]
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Smart casual.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "casual"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Searches near Chelsea (wrong show).",
+  "Asks which show despite the clear reference."
+ ]
+}

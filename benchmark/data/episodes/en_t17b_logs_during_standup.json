@@ -1,0 +1,271 @@
+{
+ "episode_id": "en_t17b_logs_during_standup",
+ "template_id": "T17_silent_arrival_deliver_on_resume",
+ "split": "all",
+ "lang": "en",
+ "domain": "code_debugging",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "silence_request_not_cancel",
+  "S7_result_arrives_during_silence",
+  "resume_delivery",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "Overnight checkout-service log triage; user joins standup and asks for silence; findings are delivered when they're back.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-16T09:25:00-04:00",
+   "weekday": "Monday",
+   "services": [
+    "checkout-service",
+    "cart-service"
+   ]
+  },
+  "materials": {
+   "aliases": {
+    "checkout-service": [
+     "checkout",
+     "checkout service"
+    ]
+   },
+   "logs": {
+    "checkout-service": {
+     "last_night": {
+      "window": "00:00-08:00",
+      "total_errors": 930,
+      "groups": [
+       {
+        "error": "Payment provider timeout (Adyen)",
+        "count": 880,
+        "peak": "02:10-02:40"
+       },
+       {
+        "error": "NullPointerException in CouponValidator",
+        "count": 50,
+        "peak": "spread out"
+       }
+      ]
+     },
+     "last_7d": {
+      "window": "7d",
+      "total_errors": 2100,
+      "groups": [
+       {
+        "error": "Payment provider timeout (Adyen)",
+        "count": 2000,
+        "peak": "nightly"
+       }
+      ]
+     }
+    }
+   }
+  },
+  "tool_behaviors": {
+   "triage_logs": {
+    "duration_s": 36,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 14
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Triage the checkout-service errors from last night.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "What's a sane alert threshold for checkout errors?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Standup's starting, I'm going on mute. Don't talk for a bit.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Alright, standup's over.",
+   "trigger": {
+    "type": "after_turn",
+    "ref": "u3",
+    "delay": 26
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "So was it us or them?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_logs",
+   "summary": "880 Adyen timeouts 2:10–2:40; 50 coupon NPEs.",
+   "match": {
+    "tool": "triage_logs"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "service": "checkout-service",
+      "time_window": "last_night",
+      "min_level": {
+       "$optional": {
+        "$any": true
+       }
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "service": "checkout-service",
+     "time_window": "last_night",
+     "min_level": {
+      "$optional": {
+       "$any": true
+      }
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Adyen",
+      "payment provider",
+      "timeout"
+     ],
+     [
+      "2:10",
+      "two ten",
+      "2 a.m.",
+      "2am"
+     ],
+     [
+      "coupon",
+      "CouponValidator"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4",
+    "u5"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Rate-based threshold.",
+   "must_not": "Only report status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "rate",
+      "percent",
+      "%"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "silence_request",
+   "must": "Minimal ack; stay silent; keep the scan.",
+   "must_not": "Talk; cancel.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "got it",
+      "okay",
+      "sure"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   },
+   "latency": false
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "resume",
+   "must": "Deliver the findings that landed during standup.",
+   "must_not": "Say it's still running.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Adyen",
+      "payment",
+      "timeout"
+     ],
+     [
+      "2:10",
+      "2 a.m",
+      "coupon"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c4",
+   "turn_id": "u5",
+   "type": "grounded_answer",
+   "must": "Provider-side timeouts; small internal coupon bug.",
+   "must_not": "Blame only internal code.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Adyen",
+      "provider",
+      "them"
+     ],
+     [
+      "coupon"
+     ]
+    ],
+    "min_groups": 2,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Talks during standup.",
+  "Reports the 7-day numbers."
+ ]
+}

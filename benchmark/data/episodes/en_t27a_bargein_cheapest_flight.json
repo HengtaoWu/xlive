@@ -1,0 +1,223 @@
+{
+ "episode_id": "en_t27a_bargein_cheapest_flight",
+ "template_id": "T27_bargein_during_delivery",
+ "split": "all",
+ "lang": "en",
+ "domain": "travel",
+ "difficulty": "hard",
+ "scenario_tags": [
+  "S7_bargein_during_delivery",
+  "redelivery_after_interrupt",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "User interrupts the flight read-out to ask which is cheapest; agent answers, then finishes the delivery.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-05-11T08:00:00-07:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Los Angeles": [
+     "LA",
+     "LAX"
+    ],
+    "Seattle": [
+     "SEA"
+    ]
+   },
+   "flights": [
+    {
+     "flight_no": "AS 1301",
+     "airline": "Alaska",
+     "origin": "Los Angeles",
+     "destination": "Seattle",
+     "date": "2026-05-22",
+     "depart": "07:00",
+     "price": 139,
+     "stops": 0
+    },
+    {
+     "flight_no": "DL 2210",
+     "airline": "Delta",
+     "origin": "Los Angeles",
+     "destination": "Seattle",
+     "date": "2026-05-22",
+     "depart": "09:30",
+     "price": 162,
+     "stops": 0
+    },
+    {
+     "flight_no": "WN 880",
+     "airline": "Southwest",
+     "origin": "Los Angeles",
+     "destination": "Seattle",
+     "date": "2026-05-22",
+     "depart": "12:00",
+     "price": 118,
+     "stops": 1
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_flights": {
+    "duration_s": 32,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 12
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Flights from LA to Seattle on Friday the twenty-second.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Does it rain much in Seattle in late May?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Sorry, wait, which one's the cheapest?",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_fl",
+    "event": "task_completed",
+    "delay": 1.8,
+    "max_wait": 50,
+    "barge_in": true
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay, Alaska nonstop it is.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_fl",
+   "summary": "Southwest 118 (1 stop), Alaska 139 nonstop, Delta 162.",
+   "match": {
+    "tool": "search_flights"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "origin": "Los Angeles",
+      "destination": "Seattle",
+      "date": "2026-05-22"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "origin": "Los Angeles",
+     "destination": "Seattle",
+     "date": "2026-05-22"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Southwest",
+      "118"
+     ],
+     [
+      "Alaska",
+      "139"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u3",
+    "u4"
+   ]
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Mild, some showers.",
+   "must_not": "Only status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "mild",
+      "shower",
+      "drier",
+      "rain"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "grounded_answer",
+   "must": "Answer the interruption directly.",
+   "must_not": "Ignore the question and keep reading.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Southwest",
+      "118"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Alaska 7am 139.",
+   "must_not": "Pick Delta.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Alaska"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "delta"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Ignores the barge-in and keeps reading.",
+  "Never finishes the delivery."
+ ]
+}

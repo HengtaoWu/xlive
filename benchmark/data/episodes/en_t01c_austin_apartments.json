@@ -1,0 +1,255 @@
+{
+ "episode_id": "en_t01c_austin_apartments",
+ "template_id": "T01_related_qa_while_waiting",
+ "split": "all",
+ "lang": "en",
+ "domain": "housing",
+ "difficulty": "easy",
+ "scenario_tags": [
+  "S1_related_qa_during_wait",
+  "S7_result_arrives_while_user_speaks",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Find one-bedroom apartments in Austin under $1,800; meanwhile ask about neighborhoods and deposits.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-03-02T19:00:00-06:00",
+   "weekday": "Monday",
+   "user_city": "Chicago (relocating)",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Austin": [
+     "austin tx",
+     "Austin, Texas"
+    ]
+   },
+   "currency": "USD",
+   "rentals": [
+    {
+     "name": "Riverside Studio",
+     "city": "Austin",
+     "rent": 1200,
+     "bedrooms": 0,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 25
+    },
+    {
+     "name": "Eastside Lofts",
+     "city": "Austin",
+     "rent": 1650,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 18
+    },
+    {
+     "name": "Mueller Commons",
+     "city": "Austin",
+     "rent": 1790,
+     "bedrooms": 1,
+     "pets": false,
+     "furnished": false,
+     "commute_min": 22
+    },
+    {
+     "name": "Zilker Flats",
+     "city": "Austin",
+     "rent": 1950,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": true,
+     "commute_min": 15
+    },
+    {
+     "name": "North Loop Two-Bed",
+     "city": "Austin",
+     "rent": 2300,
+     "bedrooms": 2,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 20
+    },
+    {
+     "name": "Deep Ellum One-Bed",
+     "city": "Dallas",
+     "rent": 1500,
+     "bedrooms": 1,
+     "pets": true,
+     "furnished": false,
+     "commute_min": 10
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "search_rentals": {
+    "duration_s": 32,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 10
+    },
+    "release_not_before": {
+     "turn": "u4",
+     "offset": 1.8,
+     "max_hold_s": 40
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Could you look for one-bedroom apartments in Austin under eighteen hundred a month?",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "I've never lived in Texas. Which neighborhoods are good if I don't want to drive much?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "My cousin keeps telling me the summers will melt me, haha.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "casual"
+  },
+  {
+   "turn_id": "u4",
+   "text": "Oh, and what's a normal security deposit there?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Okay, I'll look at those tonight.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_apts",
+   "summary": "Austin 1BR ≤ 1800: Eastside Lofts 1650, Mueller Commons 1790. Without the bedroom filter the 1200 studio comes first; without the cap Zilker 1950 appears.",
+   "match": {
+    "tool": "search_rentals"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "city": "Austin",
+      "bedrooms": 1,
+      "max_rent": 1800
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "city": "Austin",
+     "max_rent": 1800,
+     "bedrooms": 1
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Eastside Lofts"
+     ],
+     [
+      "Mueller Commons"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "Name walkable / transit-friendly neighborhoods with a reason.",
+   "must_not": "Only report search status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "East Austin",
+      "Mueller",
+      "Hyde Park",
+      "downtown",
+      "MetroRapid",
+      "bus"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "chitchat_no_action",
+   "must": "Light, brief reply; no task change.",
+   "must_not": "Add a furnished/AC filter or restart the search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "hot",
+      "heat",
+      "summer",
+      "AC"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Typical deposit (around one month's rent). Result arrives mid-question: answer first, then deliver.",
+   "must_not": "Skip the question to read results.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "month's rent",
+      "one month",
+      "a month"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Lists the studio or a Dallas listing.",
+  "Answers neighborhood/deposit questions only with 'still searching'."
+ ]
+}

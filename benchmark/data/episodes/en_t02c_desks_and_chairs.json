@@ -1,0 +1,261 @@
+{
+ "episode_id": "en_t02c_desks_and_chairs",
+ "template_id": "T02_parallel_independent_tasks",
+ "split": "all",
+ "lang": "en",
+ "domain": "procurement",
+ "difficulty": "medium",
+ "scenario_tags": [
+  "S2_independent_second_task",
+  "S7_out_of_order_results",
+  "S1_related_qa_during_wait",
+  "result_grounded_followup"
+ ],
+ "user_goal": "Compare two desk vendors incl. assembly; separately track the chairs order.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-08-10T10:00:00-04:00",
+   "weekday": "Monday",
+   "currency": "USD"
+  },
+  "materials": {
+   "aliases": {
+    "Nordhaus": [
+     "Nordhaus Office",
+     "Nord Haus"
+    ],
+    "Linden": [
+     "Linden Furniture",
+     "Linden Workspace"
+    ]
+   },
+   "vendors": [
+    {
+     "name": "Nordhaus",
+     "base_price": 8400,
+     "install_fee": 900,
+     "install_fee_ready_s": 0
+    },
+    {
+     "name": "Linden",
+     "base_price": 8100,
+     "install_fee": 1500,
+     "install_fee_ready_s": 0
+    }
+   ],
+   "orders": {
+    "55821": {
+     "item": "12 task chairs",
+     "status": "in transit",
+     "carrier": "UPS",
+     "last_scan": "Louisville, KY",
+     "eta": "2026-08-14"
+    },
+    "55812": {
+     "item": "monitor arms",
+     "status": "delivered",
+     "carrier": "FedEx",
+     "last_scan": "front desk",
+     "eta": "2026-08-03"
+    }
+   }
+  },
+  "tool_behaviors": {
+   "compare_quotes": {
+    "duration_s": 50,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 20
+    }
+   },
+   "track_order": {
+    "duration_s": 9,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 6
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Compare the quotes from Nordhaus and Linden for the office desks, and include assembly.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "And can you check where order five five eight two one is? That's the chairs.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "Do standing desks actually help with back pain, or is that hype?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u4",
+   "text": "Okay, let's go with the cheaper one then.",
+   "trigger": {
+    "type": "on_event",
+    "goal": "g_quotes",
+    "event": "task_completed",
+    "delay": 12,
+    "max_wait": 70
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_quotes",
+   "summary": "Nordhaus 8,400+900=9,300 < Linden 8,100+1,500=9,600. Linden's base is lower (trap if fees ignored).",
+   "match": {
+    "tool": "compare_quotes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "vendors": [
+       "Nordhaus",
+       "Linden"
+      ],
+      "include_install_fee": true
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "vendors": [
+      "Nordhaus",
+      "Linden"
+     ],
+     "include_install_fee": true,
+     "budget": {
+      "$any": true
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Nordhaus"
+     ],
+     [
+      "9,300",
+      "9300"
+     ]
+    ],
+    "min_facts": 2
+   },
+   "asked_in_turns": [
+    "u4"
+   ]
+  },
+  {
+   "goal_id": "g_order",
+   "summary": "Order 55821: in transit, UPS, ETA Aug 14. 55812 (transposed) is delivered monitor arms.",
+   "match": {
+    "tool": "track_order"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u2",
+     "deadline_s": 15,
+     "constraints": {
+      "order_id": "55821"
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "order_id": "55821"
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "UPS",
+      "Louisville",
+      "in transit"
+     ],
+     [
+      "August 14",
+      "Aug 14",
+      "14th",
+      "Friday"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u3",
+   "type": "knowledge_answer",
+   "must": "Balanced answer (mixed evidence; alternating posture helps).",
+   "must_not": "Only report task status.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "mixed",
+      "evidence",
+      "switch",
+      "alternat",
+      "moving"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u4",
+   "type": "grounded_ack",
+   "must": "Nordhaus is cheaper once assembly is included (9,300 vs 9,600).",
+   "must_not": "Pick Linden because of its lower base price.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Nordhaus"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": [
+     "linden is cheaper",
+     "go with linden"
+    ]
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Tracks order 55812.",
+  "Picks Linden as cheaper.",
+  "Mixes the order status into the desk comparison."
+ ]
+}

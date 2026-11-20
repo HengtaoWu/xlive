@@ -1,0 +1,269 @@
+{
+ "episode_id": "en_t01d_salmon_dinner",
+ "template_id": "T01_related_qa_while_waiting",
+ "split": "all",
+ "lang": "en",
+ "domain": "cooking",
+ "difficulty": "easy",
+ "scenario_tags": [
+  "S1_related_qa_during_wait",
+  "S7_result_arrives_while_user_speaks",
+  "chitchat_no_action"
+ ],
+ "user_goal": "Find salmon + asparagus dinner recipes under 40 minutes; meanwhile ask food-safety and wine questions.",
+ "environment": {
+  "agent_context": {
+   "now": "2026-05-04T16:40:00-04:00",
+   "weekday": "Monday"
+  },
+  "materials": {
+   "recipes": [
+    {
+     "name": "Miso-Glazed Salmon with Asparagus",
+     "ingredients": [
+      "salmon",
+      "asparagus",
+      "miso",
+      "rice"
+     ],
+     "diet": [
+      "nut_free"
+     ],
+     "time_min": 25
+    },
+    {
+     "name": "Sheet-Pan Lemon Salmon and Asparagus",
+     "ingredients": [
+      "salmon",
+      "asparagus",
+      "lemon",
+      "potatoes"
+     ],
+     "diet": [
+      "gluten_free",
+      "nut_free"
+     ],
+     "time_min": 30
+    },
+    {
+     "name": "Salmon and Asparagus Risotto",
+     "ingredients": [
+      "salmon",
+      "asparagus",
+      "arborio rice",
+      "parmesan"
+     ],
+     "diet": [
+      "gluten_free"
+     ],
+     "time_min": 55
+    },
+    {
+     "name": "Salmon en Croûte",
+     "ingredients": [
+      "salmon",
+      "puff pastry",
+      "spinach"
+     ],
+     "diet": [],
+     "time_min": 70
+    },
+    {
+     "name": "Asparagus Quiche",
+     "ingredients": [
+      "asparagus",
+      "eggs",
+      "cream"
+     ],
+     "diet": [
+      "vegetarian"
+     ],
+     "time_min": 50
+    }
+   ]
+  },
+  "tool_behaviors": {
+   "find_recipes": {
+    "duration_s": 26,
+    "amend_policy": {
+     "type": "restart",
+     "duration_s": 8
+    },
+    "release_not_before": {
+     "turn": "u4",
+     "offset": 1.8,
+     "max_hold_s": 40
+    }
+   }
+  }
+ },
+ "turns": [
+  {
+   "turn_id": "u1",
+   "text": "Can you find me some dinner ideas with salmon and asparagus? Nothing over forty minutes.",
+   "trigger": {
+    "type": "at",
+    "t": 0.5
+   }
+  },
+  {
+   "turn_id": "u2",
+   "text": "Do you know how long salmon keeps in the fridge once it's thawed?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u3",
+   "text": "I'm trying to impress my in-laws tonight. No pressure, right?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   },
+   "tts_style": "nervous"
+  },
+  {
+   "turn_id": "u4",
+   "text": "And what wine goes with salmon, a white or a light red?",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  },
+  {
+   "turn_id": "u5",
+   "text": "Perfect, thanks.",
+   "trigger": {
+    "type": "after_agent_idle",
+    "gap": 1.2,
+    "max_wait": 10
+   }
+  }
+ ],
+ "goals": [
+  {
+   "goal_id": "g_recipes",
+   "summary": "Under 40 min: Miso-Glazed (25), Sheet-Pan (30). Risotto (55) is the trap if the time cap is dropped.",
+   "match": {
+    "tool": "find_recipes"
+   },
+   "ops": [
+    {
+     "op": "start",
+     "after": "u1",
+     "deadline_s": 15,
+     "constraints": {
+      "ingredients": {
+       "$contains": [
+        "salmon",
+        "asparagus"
+       ]
+      },
+      "max_time_min": {
+       "$range": [
+        35,
+        40
+       ]
+      }
+     },
+     "allowed_extra": []
+    }
+   ],
+   "final": {
+    "status": "completed",
+    "constraints": {
+     "ingredients": {
+      "$contains": [
+       "salmon",
+       "asparagus"
+      ]
+     },
+     "max_time_min": {
+      "$range": [
+       35,
+       40
+      ]
+     }
+    },
+    "allowed_extra": []
+   },
+   "delivery": {
+    "required": true,
+    "key_facts": [
+     [
+      "Miso"
+     ],
+     [
+      "Sheet-Pan",
+      "sheet pan"
+     ]
+    ],
+    "min_facts": 1
+   }
+  }
+ ],
+ "checkpoints": [
+  {
+   "cp_id": "c1",
+   "turn_id": "u2",
+   "type": "knowledge_answer",
+   "must": "One to two days after thawing.",
+   "must_not": "Only say it's searching.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "day"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c2",
+   "turn_id": "u3",
+   "type": "chitchat_no_action",
+   "must": "Warm, brief reassurance; no task change.",
+   "must_not": "Change the recipe search.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "pressure",
+      "impress",
+      "safe",
+      "you've got"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  },
+  {
+   "cp_id": "c3",
+   "turn_id": "u4",
+   "type": "knowledge_answer",
+   "must": "Wine pairing (Pinot Noir / Chardonnay / Sauvignon Blanc / rosé). Result arrives mid-question: answer first.",
+   "must_not": "Read recipes instead.",
+   "judge_hints": {
+    "answer_keywords": [
+     [
+      "Pinot",
+      "Chardonnay",
+      "Sauvignon",
+      "rosé"
+     ]
+    ],
+    "min_groups": 1,
+    "forbidden": []
+   }
+  }
+ ],
+ "failure_conditions": [
+  "Suggests the 55-minute risotto as fitting.",
+  "Defers the questions until results arrive."
+ ]
+}
